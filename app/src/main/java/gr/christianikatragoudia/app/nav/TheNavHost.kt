@@ -13,6 +13,7 @@ import gr.christianikatragoudia.app.ui.RecentDestination
 import gr.christianikatragoudia.app.ui.SearchDestination
 import gr.christianikatragoudia.app.ui.SongDestination
 import gr.christianikatragoudia.app.ui.StarredDestination
+import gr.christianikatragoudia.app.ui.UpdateDestination
 import gr.christianikatragoudia.app.ui.ThemeDestination
 import gr.christianikatragoudia.app.ui.TonalitiesDestination
 import gr.christianikatragoudia.app.ui.VersionsDestination
@@ -131,6 +132,9 @@ fun TheNavHost() {
                 navigateToTheme = {
                     navController.navigate(ThemeDestination.route)
                 },
+                navigateToUpdate = {
+                    navController.navigate(UpdateDestination.route)
+                },
                 navigateToInformation = {
                     navController.navigate(InformationDestination.route)
                 },
@@ -152,6 +156,13 @@ fun TheNavHost() {
         composable(route = ThemeDestination.route) {
             ThemeDestination.TheScreen(
                     navigateBack = {
+                    navController.navigateUp()
+                },
+            )
+        }
+        composable(route = UpdateDestination.route) {
+            UpdateDestination.TheScreen(
+                navigateBack = {
                     navController.navigateUp()
                 },
             )

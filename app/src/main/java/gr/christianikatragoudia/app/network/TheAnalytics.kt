@@ -7,7 +7,8 @@ import com.google.firebase.analytics.logEvent
 
 object TheAnalytics {
 
-    private const val EVENT_SYNCHRONIZE = "synchronize"
+    private const val EVENT_UPDATE_CHECK = "update_check"
+    private const val EVENT_UPDATE_APPLY = "update_apply"
     private const val PARAM_TONALITY = "tonality"
 
     fun logAppOpen() {
@@ -42,7 +43,11 @@ object TheAnalytics {
         }
     }
 
-    fun logSynchronize() {
-        Firebase.analytics.logEvent(EVENT_SYNCHRONIZE) {}
+    fun logUpdateCheck() {
+        Firebase.analytics.logEvent(EVENT_UPDATE_CHECK) {}
+    }
+
+    fun logUpdateApply() {
+        Firebase.analytics.logEvent(EVENT_UPDATE_APPLY) {}
     }
 }

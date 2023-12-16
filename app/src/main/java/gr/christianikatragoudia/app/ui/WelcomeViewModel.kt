@@ -50,16 +50,16 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
         }
     }
 
-    fun getWebData() {
+    fun applyPatch() {
         _uiState.update {
             it.copy(loading = true)
         }
         viewModelScope.launch {
             try {
-                val songList = WebApp.retrofitService.getSongs()
-                val chordList = WebApp.retrofitService.getChords()
-                application.getDatabase().songDao().insert(*songList.toTypedArray())
-                application.getDatabase().chordDao().insert(*chordList.toTypedArray())
+                val patch = WebApp.retrofitService.getPatch(null, true)
+                application.getDatabase().songDao().insert(*patch.songList.toTypedArray())
+                application.getDatabase().chordDao().insert(*patch.chordList.toTypedArray())
+                application.getSettings().setUpdateTimestamp(patch.timestamp)
                 val count = application.getDatabase().songDao().count()
                 _uiState.update {
                     it.copy(
@@ -73,7 +73,7 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
                     it.copy(loading = false)
                 }
             }
-            TheAnalytics.logSynchronize()
+            TheAnalytics.logUpdateApply()
         }
     }
 }

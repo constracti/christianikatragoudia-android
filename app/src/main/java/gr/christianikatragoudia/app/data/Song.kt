@@ -15,9 +15,4 @@ data class Song(
     val excerpt: String,
     val modified: LocalDateTime,
     val permalink: String,
-) {
-
-    fun isSynchronized(other: Song): Boolean {
-        return this.id == other.id && this.modified == other.modified
-    }
-}
+)

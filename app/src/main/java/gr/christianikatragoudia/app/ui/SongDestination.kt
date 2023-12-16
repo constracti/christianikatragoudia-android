@@ -93,7 +93,7 @@ object SongDestination : NavDestination {
     ) {
         val uiState by viewModel.uiState.collectAsState()
         if (uiState.loading) {
-            LoadingScreen()
+            LoadingScreen(navigateBack = navigateBack)
         } else if (!uiState.passed) {
             ErrorScreen(navigateBack = navigateBack)
         } else {

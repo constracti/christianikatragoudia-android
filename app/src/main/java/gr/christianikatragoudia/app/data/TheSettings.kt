@@ -5,11 +5,13 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import gr.christianikatragoudia.app.music.MusicNote
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
@@ -19,6 +21,7 @@ class TheSettings(private val dataStore: DataStore<Preferences>) {
 
         val HIDDEN_TONALITIES_KEY = stringSetPreferencesKey("hidden_tonalities")
         val THEME_OPTION_KEY = booleanPreferencesKey("theme_option")
+        val UPDATE_TIMESTAMP_KEY = intPreferencesKey("update_timestamp")
     }
 
     val hiddenTonalities: Flow<Set<MusicNote>> = dataStore.data
@@ -75,6 +78,16 @@ class TheSettings(private val dataStore: DataStore<Preferences>) {
                 ThemeOption.LIGHT -> it[THEME_OPTION_KEY] = false
                 ThemeOption.DARK -> it[THEME_OPTION_KEY] = true
             }
+        }
+    }
+
+    suspend fun getUpdateTimestamp(): Int? {
+        return dataStore.data.firstOrNull()?.get(UPDATE_TIMESTAMP_KEY)
+    }
+
+    suspend fun setUpdateTimestamp(timestamp: Int) {
+        dataStore.edit {
+            it[UPDATE_TIMESTAMP_KEY] = timestamp
         }
     }
 }

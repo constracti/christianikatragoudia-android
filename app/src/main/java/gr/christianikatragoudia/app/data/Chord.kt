@@ -25,9 +25,4 @@ data class Chord(
     val parent: Int,
     val content: String,
     val tonality: MusicNote,
-) {
-
-    fun isSynchronized(other: Chord): Boolean {
-        return this.id == other.id && this.modified == other.modified && this.parent == other.parent
-    }
-}
+)

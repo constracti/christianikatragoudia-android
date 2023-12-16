@@ -2,13 +2,13 @@ package gr.christianikatragoudia.app.network
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import gr.christianikatragoudia.app.data.Chord
 import gr.christianikatragoudia.app.data.DateTimeConverter
+import gr.christianikatragoudia.app.data.Patch
 import gr.christianikatragoudia.app.music.MusicNoteJsonAdapter
-import gr.christianikatragoudia.app.data.Song
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 private val moshi = Moshi.Builder()
     .add(DateTimeConverter())
@@ -29,11 +29,8 @@ private val retrofit = Retrofit.Builder()
 
 interface WebAppService {
 
-    @GET("wp-admin/admin-ajax.php?action=xt_app_songs_1")
-    suspend fun getSongs(): List<Song>
-
-    @GET("wp-admin/admin-ajax.php?action=xt_app_chords_1")
-    suspend fun getChords(): List<Chord>
+    @GET("wp-admin/admin-ajax.php?action=xt_app_patch_2")
+    suspend fun getPatch(@Query("after") after: Int?, @Query("full") full: Boolean): Patch
 }
 
 object WebApp {

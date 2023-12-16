@@ -8,7 +8,7 @@
         \nαπό την ιστοσελίδα
         \n
     </string>
-    <string name="download_button_text">Λήψη</string>
+    <string name="download">Λήψη</string>
     <string name="download_error_message">Παρουσιάστηκε κάποιο σφάλμα. Έλεγξε ότι έχεις συνδεθεί στο διαδίκτυο.</string>
     <string name="back_button">Επιστροφή</string>
     <string name="error">Σφάλμα</string>
@@ -29,8 +29,8 @@
     <string name="details">Λεπτομέρειες</string>
     <string name="options">Επιλογές</string>
     <string name="settings">Ρυθμίσεις</string>
-    <string name="settings_tonalities_title">Τονικότητες</string>
-    <string name="settings_tonalities_support">Στοιχεία που εμφανίζονται στο μενού επιλογής τονικότητας των συγχορδιών</string>
+    <string name="tonalities">Τονικότητες</string>
+    <string name="tonalities_support">Στοιχεία που εμφανίζονται στο μενού επιλογής τονικότητας των συγχορδιών</string>
     <string name="theme">Θέμα</string>
     <string name="theme_system">Θέμα Συστήματος</string>
     <string name="theme_light">Φωτεινό Θέμα</string>
@@ -43,9 +43,16 @@
         για την τρέχουσα εφαρμογή.
     </string>
     <string name="tools">Εργαλεία</string>
-    <string name="tools_synchronize_title">Λήψη τραγουδιών</string>
-    <string name="tools_synchronize_description">Συγχρονισμός της εφαρμογής με προσθήκες και αλλαγές στους στίχους και τις συγχορδίες των τραγουδιών της ιστοσελίδας.</string>
-    <string name="tools_synchronize_success">Ο συγχρονισμός ολοκληρώθηκε επιτυχώς.</string>
+    <string name="update">Ενημέρωση</string>
+    <string name="update_support">Λήψη νέων τραγουδιών από την ιστοσελίδα</string>
+    <string name="update_success">
+        Όλες οι προσθήκες και οι αλλαγές
+        στους στίχους και τις συγχορδίες
+        των τραγουδιών της ιστοσελίδας
+        έχουν ενσωματωθεί στην εφαρμογή.
+    </string>
+    <string name="edit">Τροποποίηση</string>
+    <string name="add">Προσθήκη</string>
     <string name="tools_recent_clear_title">Εκκαθάριση λίστας προσφάτως προβεβλημμένων τραγουδιών</string>
     <string name="tools_recent_clear_description">Προσοχή! Η ενέργεια είναι μη αναστρέψιμη.</string>
     <string name="tools_tonality_reset_title">Επαναφορά επιλεγμένης τονικότητας συγχορδιών</string>
@@ -58,7 +65,6 @@
         Επαναφορά μεγέθους γραμματοσειράς στίχων και συγχορδιών όλων των τραγουδιών.
         \nΠροσοχή! Η ενέργεια είναι μη αναστρέψιμη.
     </string>
-    <string name="synchronize">Συγχρονισμός</string>
     <string name="clear">Εκκαθάριση</string>
     <string name="reset">Επαναφορά</string>
     <string name="cancel">Άκυρο</string>
@@ -100,6 +106,9 @@
     <string-array name="version_1_2">
         <item>Προβολή άδειας χρήσης</item>
         <item>Περιορισμός μεταβολής μεγέθους γραμματοσειράς</item>
+    </string-array>
+    <string-array name="version_1_3">
+        <item>Έλεγχος ενημερώσεων από την ιστοσελίδα</item>
     </string-array>
     <string name="starred">Αγαπημένα</string>
     <string name="recent">Πρόσφατα</string>

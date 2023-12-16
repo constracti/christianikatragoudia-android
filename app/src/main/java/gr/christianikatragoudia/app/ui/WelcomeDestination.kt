@@ -86,7 +86,7 @@ object WelcomeDestination : NavDestination {
             TheScaffold(
                 snackbarHostState = snackbarHostState,
                 onDownloadButtonClick = {
-                    viewModel.getWebData()
+                    viewModel.applyPatch()
                 },
                 navigateToInformation = navigateToInformation,
                 navigateToLicense = navigateToLicense,
@@ -150,7 +150,7 @@ private fun TheScaffold(
                     modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
                 Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = stringResource(R.string.download_button_text))
+                Text(text = stringResource(R.string.download))
             }
         }
     }

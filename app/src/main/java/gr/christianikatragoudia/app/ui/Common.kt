@@ -12,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -52,6 +53,54 @@ fun TheTopAppBar(
             containerColor = Color.Transparent,
         ),
     )
+}
+
+@Composable
+fun LoadingBox(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun LoadingScreen(
+    title: String = stringResource(R.string.app_name),
+    navigateBack: (() -> Unit)? = null,
+) {
+    Scaffold(
+        topBar = {
+            TheTopAppBar(title, navigateBack)
+        },
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+    ) {
+        LoadingBox(modifier = Modifier.padding(it))
+    }
+}
+
+@Composable
+fun ErrorScreen(
+    title: String = stringResource(R.string.app_name),
+    message: String = stringResource(R.string.error),
+    navigateBack: (() -> Unit)? = null,
+) {
+    Scaffold(
+        topBar = {
+            TheTopAppBar(title, navigateBack)
+        },
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+    ) {
+        Box(
+            modifier = Modifier.padding(it),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(message)
+        }
+    }
 }
 
 enum class TheNavigationBarScreen {
@@ -112,45 +161,5 @@ fun TheNavigationBar(
                 Text(text = stringResource(R.string.options))
             },
         )
-    }
-}
-
-@Composable
-fun LoadingScreen(title: String = stringResource(R.string.app_name)) {
-    Scaffold(
-        topBar = {
-            TheTopAppBar(title)
-        },
-        containerColor = Color.Transparent,
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(it)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            CircularProgressIndicator()
-        }
-    }
-}
-
-@Composable
-fun ErrorScreen(
-    title: String = stringResource(R.string.app_name),
-    message: String = stringResource(R.string.error),
-    navigateBack: (() -> Unit)? = null,
-) {
-    Scaffold(
-        topBar = {
-            TheTopAppBar(title, navigateBack)
-        },
-        containerColor = Color.Transparent,
-    ) {
-        Box(
-            modifier = Modifier.padding(it),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(message)
-        }
     }
 }

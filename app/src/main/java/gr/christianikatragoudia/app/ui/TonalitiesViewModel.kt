@@ -15,7 +15,7 @@ class TonalitiesViewModel(private val application: TheApplication) : ViewModel()
 
     private val analyticsClass = "/options/tonalities/"
     private val analyticsName =
-        application.getString(R.string.settings_tonalities_title) + " – " + application.getString(R.string.app_name)
+        application.getString(R.string.tonalities) + " – " + application.getString(R.string.app_name)
 
     init {
         viewModelScope.launch {
