@@ -101,7 +101,7 @@ private fun TheScaffold(
                 query = query,
                 onQueryFieldValueChange = onQueryFieldValueChange,
             )
-            SearchResult.ResultList(
+            ResultList(
                 resultList = resultList,
                 navigateToSong = navigateToSong,
             )

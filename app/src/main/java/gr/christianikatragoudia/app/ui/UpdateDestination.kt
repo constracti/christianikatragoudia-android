@@ -12,19 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -39,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +44,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.Patch
 import gr.christianikatragoudia.app.data.SongTitle
 import gr.christianikatragoudia.app.nav.NavDestination
 import kotlinx.coroutines.flow.collectLatest
@@ -132,7 +127,7 @@ object UpdateDestination : NavDestination {
             if (loading) {
                 LoadingBox(modifier = Modifier.padding(it))
             } else if (!actions.isNullOrEmpty()) {
-                ListContent(resultList = actions, modifier = Modifier.padding(it))
+                ListContent(actions = actions, modifier = Modifier.padding(it))
             } else if (actions != null) {
                 SuccessContent(modifier = Modifier.padding(it))
             }
@@ -142,41 +137,20 @@ object UpdateDestination : NavDestination {
 
 @Composable
 private fun ListContent(
-    resultList: List<Pair<SongTitle, Boolean>>,
+    actions: Map<Patch.Action, List<SongTitle>>,
     modifier: Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(vertical = 4.dp),
     ) {
-        items(resultList) {
-            ListItem(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                headlineContent = {
-                    Text(text = it.first.title)
-                },
-                supportingContent = {
-                    if (it.first.excerpt != it.first.title)
-                        Text(text = it.first.excerpt)
-                },
-                trailingContent = {
-                    if (it.second)
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.edit),
-                        )
-                    else
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.add),
-                        )
-                },
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = .5F),
-                ),
-            )
+        actions.forEach { (action, resultList) ->
+            item {
+                ResultHeader(text = stringResource(action.text))
+            }
+            items(resultList) {
+                ResultItem(songTitle = it)
+            }
         }
     }
 }

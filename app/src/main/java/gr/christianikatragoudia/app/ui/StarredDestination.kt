@@ -74,10 +74,10 @@ private fun TheScaffold(
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
     ) {
-        SearchResult.ResultList(
+        ResultList(
             resultList = resultList,
-            navigateToSong = navigateToSong,
             modifier = Modifier.padding(it),
+            navigateToSong = navigateToSong,
         )
     }
 }

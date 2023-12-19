@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.Patch
 import gr.christianikatragoudia.app.data.SongTitle
 import gr.christianikatragoudia.app.network.TheAnalytics
 import gr.christianikatragoudia.app.network.WebApp
@@ -31,7 +32,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
 
     data class UiState(
         val loading: Boolean = true,
-        val actions: List<Pair<SongTitle, Boolean>>? = null,
+        val actions: MutableMap<Patch.Action, MutableList<SongTitle>>? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -77,23 +78,30 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                     Pair(it.value, newParentMap[it.key]!![0])
                 }
 
-                val actions = mutableListOf<Pair<SongTitle, Boolean>>()
-                newPairMap.values.sortedBy {
-                    val song = it.first
-                    val chord = it.second
-                    maxOf(song.modified, chord.modified)
-                }.forEach {
+                val actions = mutableMapOf<Patch.Action, MutableList<SongTitle>>()
+                newPairMap.values.sortedWith(compareBy(
+                    {it.first.title},
+                    {it.first.excerpt},
+                    {it.first.id},
+                )).forEach {
                     val song = it.first
                     val chord = it.second
                     val pair = oldPairMap[song.id]
-                    if (pair == null)
-                        actions.add(Pair(SongTitle(song.id, song.title, song.excerpt), false))
+                    val action = if (pair == null)
+                        Patch.Action.ADD
                     else if (pair.first.modified != song.modified || pair.second.modified != chord.modified)
-                        actions.add(Pair(SongTitle(song.id, song.title, song.excerpt), true))
+                        Patch.Action.EDIT
+                    else
+                        null
+                    if (action != null) {
+                        if (!actions.containsKey(action))
+                            actions[action] = mutableListOf()
+                        actions[action]!!.add(SongTitle(song.id, song.title, song.excerpt))
+                    }
                 }
 
                 _uiState.update {
-                    it.copy(loading = false, actions = actions)
+                    it.copy(loading = false, actions = actions.toSortedMap())
                 }
             } catch (e: Exception) {
                 setSnackbarMessage(application.getString(R.string.download_error_message))
@@ -147,7 +155,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
 
                 application.getSettings().setUpdateTimestamp(patch.timestamp)
                 _uiState.update {
-                    it.copy(loading = false, actions = listOf())
+                    it.copy(loading = false, actions = mutableMapOf())
                 }
             } catch (e: Exception) {
                 setSnackbarMessage(application.getString(R.string.download_error_message))
