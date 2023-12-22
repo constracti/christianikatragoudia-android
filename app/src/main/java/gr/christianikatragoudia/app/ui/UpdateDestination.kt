@@ -146,7 +146,9 @@ private fun ListContent(
     ) {
         actions.forEach { (action, resultList) ->
             item {
-                ResultHeader(text = stringResource(action.text))
+                val actionText = stringResource(action.text)
+                val actionCount = resultList.size
+                ResultHeader(text = "$actionText ($actionCount)")
             }
             items(resultList) {
                 ResultItem(songTitle = it)
