@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.SongTitle
+import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -28,7 +29,7 @@ class StarredViewModel(application: TheApplication) : ViewModel() {
         val loading: Boolean = true,
     )
 
-    val uiState = application.getDatabase().songDao().getTitlesByStarred().map {
+    val uiState = TheDatabase.getInstance(application).songDao().getTitlesByStarred().map {
         UiState(resultList = it, loading = false)
     }.stateIn(
         scope = viewModelScope,

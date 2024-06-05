@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.SettingsRepo
+import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
 import gr.christianikatragoudia.app.network.WebApp
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,7 +40,7 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val count = application.getDatabase().songDao().count()
+            val count = TheDatabase.getInstance(application).songDao().count()
             _uiState.update {
                 it.copy(
                     loading = false,
@@ -57,10 +59,11 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
         viewModelScope.launch {
             try {
                 val patch = WebApp.retrofitService.getPatch(null, true)
-                application.getDatabase().songDao().insert(*patch.songList.toTypedArray())
-                application.getDatabase().chordDao().insert(*patch.chordList.toTypedArray())
-                application.getSettings().setUpdateTimestamp(patch.timestamp)
-                val count = application.getDatabase().songDao().count()
+                TheDatabase.getInstance(application).songDao().insert(*patch.songList.toTypedArray())
+                TheDatabase.getInstance(application).chordDao().insert(*patch.chordList.toTypedArray())
+                SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
+                SettingsRepo(application).setNotificationTimestamp(patch.timestamp)
+                val count = TheDatabase.getInstance(application).songDao().count()
                 _uiState.update {
                     it.copy(
                         loading = false,

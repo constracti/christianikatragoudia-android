@@ -29,6 +29,9 @@ private val retrofit = Retrofit.Builder()
 
 interface WebAppService {
 
+    @GET("wp-admin/admin-ajax.php?action=xt_app_notification_1")
+    suspend fun getNotificationTimestamp(): Int
+
     @GET("wp-admin/admin-ajax.php?action=xt_app_patch_2")
     suspend fun getPatch(@Query("after") after: Int?, @Query("full") full: Boolean): Patch
 }

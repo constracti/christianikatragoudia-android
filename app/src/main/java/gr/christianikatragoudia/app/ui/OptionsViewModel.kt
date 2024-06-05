@@ -4,11 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
-import gr.christianikatragoudia.app.network.WebApp
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,7 +35,7 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            application.getDatabase().songMetaDao().clearRecent()
+            TheDatabase.getInstance(application).songMetaDao().clearRecent()
             _uiState.update {
                 it.copy(processing = false)
             }
@@ -49,7 +47,7 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            application.getDatabase().chordMetaDao().resetTonality()
+            TheDatabase.getInstance(application).chordMetaDao().resetTonality()
             _uiState.update {
                 it.copy(processing = false)
             }
@@ -61,8 +59,8 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            application.getDatabase().songMetaDao().resetZoom()
-            application.getDatabase().chordMetaDao().resetZoom()
+            TheDatabase.getInstance(application).songMetaDao().resetZoom()
+            TheDatabase.getInstance(application).chordMetaDao().resetZoom()
             _uiState.update {
                 it.copy(processing = false)
             }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.SongTitle
+import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,6 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
     }
 
     fun getResultListFlow(query: String): Flow<List<SongTitle>> {
-        return application.getDatabase().songDao().getTitlesByQuery("%$query%")
+        return TheDatabase.getInstance(application).songDao().getTitlesByQuery("%$query%")
     }
 }

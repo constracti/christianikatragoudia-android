@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.NotificationRepo
 import gr.christianikatragoudia.app.data.Patch
+import gr.christianikatragoudia.app.data.SettingsRepo
 import gr.christianikatragoudia.app.data.SongTitle
+import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
 import gr.christianikatragoudia.app.network.WebApp
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -39,6 +42,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     init {
+        NotificationRepo(application).cancelNewContentNotification()
         checkPatch()
         viewModelScope.launch {
             TheAnalytics.logScreenView(analyticsClass, analyticsName)
@@ -51,11 +55,11 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
         }
         viewModelScope.launch {
             try {
-                val after = application.getSettings().getUpdateTimestamp()
+                val after = SettingsRepo(application).getUpdateTimestamp()
                 val patch = WebApp.retrofitService.getPatch(after, false)
 
-                val oldSongMap = application.getDatabase().songDao().getAll().associateBy { it.id }
-                val oldChordMap = application.getDatabase().chordDao().getAll().associateBy { it.id }
+                val oldSongMap = TheDatabase.getInstance(application).songDao().getAll().associateBy { it.id }
+                val oldChordMap = TheDatabase.getInstance(application).chordDao().getAll().associateBy { it.id }
                 val oldParentMap = oldChordMap.values.groupBy { it.parent }
                 val oldPairMap = oldSongMap.filterKeys {
                     oldParentMap.containsKey(it)
@@ -77,6 +81,8 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                 }.mapValues {
                     Pair(it.value, newParentMap[it.key]!![0])
                 }
+
+                SettingsRepo(application).setNotificationTimestamp(patch.timestamp)
 
                 val actions = mutableMapOf<Patch.Action, MutableList<SongTitle>>()
                 newPairMap.values.sortedWith(compareBy(
@@ -119,11 +125,11 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
         }
         viewModelScope.launch {
             try {
-                val after = application.getSettings().getUpdateTimestamp()
+                val after = SettingsRepo(application).getUpdateTimestamp()
                 val patch = WebApp.retrofitService.getPatch(after, true)
 
-                val oldSongMap = application.getDatabase().songDao().getAll().associateBy { it.id }
-                val oldChordMap = application.getDatabase().chordDao().getAll().associateBy { it.id }
+                val oldSongMap = TheDatabase.getInstance(application).songDao().getAll().associateBy { it.id }
+                val oldChordMap = TheDatabase.getInstance(application).chordDao().getAll().associateBy { it.id }
 
                 val insSongList = patch.songList.filter {
                     !oldSongMap.containsKey(it.id)
@@ -145,15 +151,16 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                     !patch.chordIdSet.contains(it)
                 }.values
 
-                application.getDatabase().songDao().insert(*insSongList.toTypedArray())
-                application.getDatabase().songDao().update(*updSongList.toTypedArray())
-                application.getDatabase().songDao().delete(*delSongList.toTypedArray())
+                TheDatabase.getInstance(application).songDao().insert(*insSongList.toTypedArray())
+                TheDatabase.getInstance(application).songDao().update(*updSongList.toTypedArray())
+                TheDatabase.getInstance(application).songDao().delete(*delSongList.toTypedArray())
 
-                application.getDatabase().chordDao().insert(*insChordList.toTypedArray())
-                application.getDatabase().chordDao().update(*updChordList.toTypedArray())
-                application.getDatabase().chordDao().delete(*delChordList.toTypedArray())
+                TheDatabase.getInstance(application).chordDao().insert(*insChordList.toTypedArray())
+                TheDatabase.getInstance(application).chordDao().update(*updChordList.toTypedArray())
+                TheDatabase.getInstance(application).chordDao().delete(*delChordList.toTypedArray())
 
-                application.getSettings().setUpdateTimestamp(patch.timestamp)
+                SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
+                SettingsRepo(application).setNotificationTimestamp(patch.timestamp)
                 _uiState.update {
                     it.copy(loading = false, actions = mutableMapOf())
                 }

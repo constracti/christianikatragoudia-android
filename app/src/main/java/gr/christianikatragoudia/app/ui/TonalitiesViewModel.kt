@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.SettingsRepo
 import gr.christianikatragoudia.app.music.MusicNote
 import gr.christianikatragoudia.app.network.TheAnalytics
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +29,7 @@ class TonalitiesViewModel(private val application: TheApplication) : ViewModel()
         val loading: Boolean = true,
     )
 
-    val uiState = application.getSettings().hiddenTonalities.map {
+    val uiState = SettingsRepo(application).hiddenTonalities.map {
         UiState(hiddenTonalities = it, loading = false)
     }.stateIn(
         scope = viewModelScope,
@@ -43,13 +44,13 @@ class TonalitiesViewModel(private val application: TheApplication) : ViewModel()
         else
             hidden.add(musicNote)
         viewModelScope.launch {
-            application.getSettings().setHiddenTonalities(hidden)
+            SettingsRepo(application).setHiddenTonalities(hidden)
         }
     }
 
     fun reset() {
         viewModelScope.launch {
-            application.getSettings().setHiddenTonalities(null)
+            SettingsRepo(application).setHiddenTonalities(null)
         }
     }
 }

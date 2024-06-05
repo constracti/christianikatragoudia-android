@@ -1,5 +1,7 @@
 package gr.christianikatragoudia.app.ui
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -104,6 +107,18 @@ object OptionsDestination : NavDestination {
                         headline = stringResource(R.string.theme),
                         enabled = !processing,
                         onClick = navigateToTheme,
+                    )
+                    // TODO request permission on Tiramisu and newer SDKs
+                    val context = LocalContext.current
+                    NavigationListItem(
+                        headline = stringResource(R.string.notifications),
+                        enabled = !processing,
+                        onClick = {
+                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            }
+                            context.startActivity(intent)
+                        },
                     )
                     ListHeader(text = stringResource(R.string.tools))
                     NavigationListItem(

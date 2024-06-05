@@ -36,7 +36,7 @@ abstract class TheDatabase : RoomDatabase() {
         @Volatile
         private var Instance: TheDatabase? = null
 
-        fun getDatabase(context: Context): TheDatabase {
+        fun getInstance(context: Context): TheDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(
                     context,

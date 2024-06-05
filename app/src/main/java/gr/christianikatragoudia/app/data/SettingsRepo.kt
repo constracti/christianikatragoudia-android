@@ -1,12 +1,12 @@
 package gr.christianikatragoudia.app.data
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import gr.christianikatragoudia.app.music.MusicNote
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -15,13 +15,20 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
-class TheSettings(private val dataStore: DataStore<Preferences>) {
+private const val SETTINGS_NAME = "settings"
+
+private val Context.dataStore by preferencesDataStore(name = SETTINGS_NAME)
+
+class SettingsRepo(context: Context) {
+
+    private val dataStore = context.dataStore
 
     private companion object {
 
         val HIDDEN_TONALITIES_KEY = stringSetPreferencesKey("hidden_tonalities")
         val THEME_OPTION_KEY = booleanPreferencesKey("theme_option")
         val UPDATE_TIMESTAMP_KEY = intPreferencesKey("update_timestamp")
+        val NOTIFICATION_TIMESTAMP_KEY = intPreferencesKey("notification_timestamp")
     }
 
     val hiddenTonalities: Flow<Set<MusicNote>> = dataStore.data
@@ -88,6 +95,16 @@ class TheSettings(private val dataStore: DataStore<Preferences>) {
     suspend fun setUpdateTimestamp(timestamp: Int) {
         dataStore.edit {
             it[UPDATE_TIMESTAMP_KEY] = timestamp
+        }
+    }
+
+    suspend fun getNotificationTimestamp(): Int? {
+        return dataStore.data.firstOrNull()?.get(NOTIFICATION_TIMESTAMP_KEY)
+    }
+
+    suspend fun setNotificationTimestamp(timestamp: Int) {
+        dataStore.edit {
+            it[NOTIFICATION_TIMESTAMP_KEY] = timestamp
         }
     }
 }
