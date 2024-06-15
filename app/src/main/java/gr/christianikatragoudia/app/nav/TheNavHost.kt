@@ -54,6 +54,9 @@ fun TheNavHost() {
                 navigateToOptions = {
                     navController.navigate(OptionsDestination.route)
                 },
+                navigateToUpdate = {
+                    navController.navigate(UpdateDestination.route)
+                },
                 navigateToSong = {
                     navController.navigate("${SongDestination.route}/${it}")
                 },

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
-import gr.christianikatragoudia.app.data.NotificationRepo
 import gr.christianikatragoudia.app.data.Patch
 import gr.christianikatragoudia.app.data.SettingsRepo
 import gr.christianikatragoudia.app.data.SongTitle
@@ -42,7 +41,6 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     init {
-        NotificationRepo(application).cancelNewContentNotification()
         checkPatch()
         viewModelScope.launch {
             TheAnalytics.logScreenView(analyticsClass, analyticsName)
@@ -82,8 +80,6 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                     Pair(it.value, newParentMap[it.key]!![0])
                 }
 
-                SettingsRepo(application).setNotificationTimestamp(patch.timestamp)
-
                 val actions = mutableMapOf<Patch.Action, MutableList<SongTitle>>()
                 newPairMap.values.sortedWith(compareBy(
                     {it.first.title},
@@ -106,6 +102,8 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                     }
                 }
 
+                if (actions.isEmpty())
+                    SettingsRepo(application).setUpdateCheck(false)
                 _uiState.update {
                     it.copy(loading = false, actions = actions.toSortedMap())
                 }
@@ -160,7 +158,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                 TheDatabase.getInstance(application).chordDao().delete(*delChordList.toTypedArray())
 
                 SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
-                SettingsRepo(application).setNotificationTimestamp(patch.timestamp)
+                SettingsRepo(application).setUpdateCheck(false)
                 _uiState.update {
                     it.copy(loading = false, actions = mutableMapOf())
                 }

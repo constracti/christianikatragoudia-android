@@ -62,7 +62,7 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
                 TheDatabase.getInstance(application).songDao().insert(*patch.songList.toTypedArray())
                 TheDatabase.getInstance(application).chordDao().insert(*patch.chordList.toTypedArray())
                 SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
-                SettingsRepo(application).setNotificationTimestamp(patch.timestamp)
+                SettingsRepo(application).setUpdateCheck(false)
                 val count = TheDatabase.getInstance(application).songDao().count()
                 _uiState.update {
                     it.copy(

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.SettingsRepo
 import gr.christianikatragoudia.app.data.SongTitle
 import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
@@ -30,6 +31,8 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
         viewModelScope.launch {
             TheAnalytics.logScreenView(analyticsClass, analyticsName)        }
     }
+
+    val updateCheck = SettingsRepo(application).updateCheck
 
     // TODO combine query and results in StateFlow
 

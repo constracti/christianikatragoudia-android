@@ -42,10 +42,6 @@
         και απενεργοποίησε την αυτόματη προσαρμογή κειμένου και φόντου
         για την τρέχουσα εφαρμογή.
     </string>
-    <string name="notifications">Ειδοποιήσεις</string>
-    <string name="notification_new_content_name">Νέο περιεχόμενο</string>
-    <string name="notification_new_content_title">Δημοσιεύθηκε νέο τραγούδι</string>
-    <string name="notification_new_content_text">Για λήψη πάτησε Ενημέρωση στο μενού Επιλογές</string>
     <string name="tools">Εργαλεία</string>
     <string name="update">Ενημέρωση</string>
     <string name="update_support">Λήψη νέων τραγουδιών από την ιστοσελίδα</string>

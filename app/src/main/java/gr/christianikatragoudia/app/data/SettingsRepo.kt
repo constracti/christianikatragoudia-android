@@ -28,7 +28,7 @@ class SettingsRepo(context: Context) {
         val HIDDEN_TONALITIES_KEY = stringSetPreferencesKey("hidden_tonalities")
         val THEME_OPTION_KEY = booleanPreferencesKey("theme_option")
         val UPDATE_TIMESTAMP_KEY = intPreferencesKey("update_timestamp")
-        val NOTIFICATION_TIMESTAMP_KEY = intPreferencesKey("notification_timestamp")
+        val UPDATE_CHECK_KEY = booleanPreferencesKey("update_check")
     }
 
     val hiddenTonalities: Flow<Set<MusicNote>> = dataStore.data
@@ -98,13 +98,22 @@ class SettingsRepo(context: Context) {
         }
     }
 
-    suspend fun getNotificationTimestamp(): Int? {
-        return dataStore.data.firstOrNull()?.get(NOTIFICATION_TIMESTAMP_KEY)
-    }
+    val updateCheck: Flow<Boolean> = dataStore.data
+        .catch {
+            if (it is IOException)
+                emit(emptyPreferences())
+            else
+                throw it
+        }
+        .map {
+            it[UPDATE_CHECK_KEY] ?: false
+        }
 
-    suspend fun setNotificationTimestamp(timestamp: Int) {
+    suspend fun hasUpdateCheck(): Boolean = updateCheck.first()
+
+    suspend fun setUpdateCheck(check: Boolean) {
         dataStore.edit {
-            it[NOTIFICATION_TIMESTAMP_KEY] = timestamp
+            it[UPDATE_CHECK_KEY] = check
         }
     }
 }

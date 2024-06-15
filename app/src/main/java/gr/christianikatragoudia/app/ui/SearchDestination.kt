@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,20 +54,24 @@ object SearchDestination : NavDestination {
         navigateToStarred: () -> Unit,
         navigateToRecent: () -> Unit,
         navigateToOptions: () -> Unit,
+        navigateToUpdate: () -> Unit,
         navigateToSong: (Int) -> Unit,
         viewModel: SearchViewModel = viewModel(factory = factory),
     ) {
         val uiState = viewModel.uiState.collectAsState()
         val query = uiState.value.query
         val resultList by viewModel.getResultListFlow(query).collectAsState(initial = emptyList())
+        val updateCheck by viewModel.updateCheck.collectAsState(initial = false)
         TheScaffold(
             navigateToStarred = navigateToStarred,
             navigateToRecent = navigateToRecent,
             navigateToOptions = navigateToOptions,
+            navigateToUpdate = navigateToUpdate,
             query = query,
             onQueryFieldValueChange = {
                 viewModel.setQuery(it)
             },
+            updateCheck = updateCheck,
             resultList = resultList,
             navigateToSong = navigateToSong,
         )
@@ -77,8 +83,10 @@ private fun TheScaffold(
     navigateToStarred: () -> Unit,
     navigateToRecent: () -> Unit,
     navigateToOptions: () -> Unit,
+    navigateToUpdate: () -> Unit,
     query: String,
     onQueryFieldValueChange: (String) -> Unit,
+    updateCheck: Boolean,
     resultList: List<SongTitle>,
     navigateToSong: (Int) -> Unit,
 ) {
@@ -90,6 +98,16 @@ private fun TheScaffold(
                 navigateToRecent = navigateToRecent,
                 navigateToOptions = navigateToOptions,
             )
+        },
+        floatingActionButton = {
+            if (updateCheck) {
+                FloatingActionButton(onClick = navigateToUpdate) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_sync_24),
+                        contentDescription = stringResource(R.string.update),
+                    )
+                }
+            }
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
@@ -158,8 +176,10 @@ private fun ThePreview() {
             navigateToStarred = {},
             navigateToRecent = {},
             navigateToOptions = {},
+            navigateToUpdate = {},
             query = "",
             onQueryFieldValueChange = {},
+            updateCheck = true,
             resultList = listOf(
                 SongTitle(1, "Θαβώρ", "Θ' ανεβούμε μαζί στο βουνό"),
                 SongTitle(2, "Ευωδία Χριστού", "Στης αγάπης τον ήλιο"),
