@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -94,7 +94,7 @@ private fun TheScaffold(
             Text(text = stringResource(R.string.license_long))
             Spacer(modifier = Modifier.height(margin))
             Image(painter = painterResource(id = R.drawable.cc_by_nc_sa), contentDescription = null)
-            Divider(modifier = Modifier.padding(vertical = margin))
+            HorizontalDivider(modifier = Modifier.padding(vertical = margin))
             val text = buildAnnotatedString {
                 append(stringResource(R.string.license_introduction))
                 append("\n\n")

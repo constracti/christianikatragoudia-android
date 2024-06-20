@@ -89,7 +89,7 @@ private fun TheScaffold(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
     ) {
-            ThemeOption.values().forEach {
+            ThemeOption.entries.forEach {
                 ListItem(
                     headlineContent = { Text(text = stringResource(id = it.text)) },
                     modifier = Modifier.clickable { themeOptionClick(it) },

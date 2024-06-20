@@ -8,6 +8,7 @@
         \nαπό την ιστοσελίδα
         \n
     </string>
+    <string name="check">Έλεγχος</string>
     <string name="download">Λήψη</string>
     <string name="download_error_message">Παρουσιάστηκε κάποιο σφάλμα. Έλεγξε ότι έχεις συνδεθεί στο διαδίκτυο.</string>
     <string name="back_button">Επιστροφή</string>

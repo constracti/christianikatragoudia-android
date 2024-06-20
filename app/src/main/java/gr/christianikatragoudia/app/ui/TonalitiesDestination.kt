@@ -15,7 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -143,7 +143,7 @@ private fun TheBody(
                 Spacer(modifier = Modifier.width(cardMargin))
             }
         }
-        Divider(modifier = Modifier.padding(bodyMargin))
+        HorizontalDivider(modifier = Modifier.padding(bodyMargin))
         FlowRow(
             horizontalArrangement = Arrangement.SpaceBetween,
             maxItemsInEachRow = 3,

@@ -98,7 +98,7 @@ object UpdateDestination : NavDestination {
                             onClick = { viewModel.checkPatch() },
                             enabled = !loading,
                         ) {
-                            Text(text = "Έλεγχος")
+                            Text(text = stringResource(R.string.check))
                         }
                         Spacer(modifier = Modifier.size(8.dp))
                         Button(
@@ -111,7 +111,7 @@ object UpdateDestination : NavDestination {
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
                             )
                             Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(text = "Λήψη")
+                            Text(text = stringResource(R.string.download))
                         }
                     }
                 }
