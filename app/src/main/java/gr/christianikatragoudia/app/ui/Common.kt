@@ -15,6 +15,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -129,6 +131,7 @@ fun TheNavigationBar(
     navigateToStarred: () -> Unit = {},
     navigateToRecent: () -> Unit = {},
     navigateToOptions: () -> Unit = {},
+    reddenOptions: Boolean = false,
 ) {
     NavigationBar(
         containerColor = Color.Transparent,
@@ -167,7 +170,12 @@ fun TheNavigationBar(
             selected = selected == TheNavigationBarScreen.OPTIONS,
             onClick = navigateToOptions,
             icon = {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+                BadgedBox(badge = {
+                    if (reddenOptions)
+                        Badge()
+                }) {
+                    Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+                }
             },
             label = {
                 Text(text = stringResource(R.string.options))

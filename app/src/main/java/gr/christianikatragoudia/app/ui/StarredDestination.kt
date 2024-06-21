@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -37,11 +38,13 @@ object StarredDestination : NavDestination {
         navigateToSong: (Int) -> Unit,
         viewModel: StarredViewModel = viewModel(factory = factory),
     ) {
-        val uiState = viewModel.uiState.collectAsState().value
+        val uiState by viewModel.uiState.collectAsState()
+        val updateCheck by viewModel.updateCheck.collectAsState(initial = false)
         TheScaffold(
             navigateToSearch = navigateToSearch,
             navigateToRecent = navigateToRecent,
             navigateToOptions = navigateToOptions,
+            updateCheck = updateCheck,
             resultList = uiState.resultList,
             navigateToSong = navigateToSong,
         )
@@ -53,6 +56,7 @@ private fun TheScaffold(
     navigateToSearch: () -> Unit,
     navigateToRecent: () -> Unit,
     navigateToOptions: () -> Unit,
+    updateCheck: Boolean,
     resultList: List<SongTitle>,
     navigateToSong: (Int) -> Unit,
 ) {
@@ -69,6 +73,7 @@ private fun TheScaffold(
                 navigateToSearch = navigateToSearch,
                 navigateToRecent = navigateToRecent,
                 navigateToOptions = navigateToOptions,
+                reddenOptions = updateCheck,
             )
         },
         contentColor = MaterialTheme.colorScheme.onBackground,

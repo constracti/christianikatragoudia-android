@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.data.SettingsRepo
 import gr.christianikatragoudia.app.data.SongTitle
 import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
@@ -23,6 +24,8 @@ class StarredViewModel(application: TheApplication) : ViewModel() {
             TheAnalytics.logScreenView(analyticsClass, analyticsName)
         }
     }
+
+    val updateCheck = SettingsRepo(application).updateCheck
 
     data class UiState(
         val resultList: List<SongTitle> = listOf(),

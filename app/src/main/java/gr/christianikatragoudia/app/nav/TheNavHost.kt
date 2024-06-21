@@ -13,9 +13,9 @@ import gr.christianikatragoudia.app.ui.RecentDestination
 import gr.christianikatragoudia.app.ui.SearchDestination
 import gr.christianikatragoudia.app.ui.SongDestination
 import gr.christianikatragoudia.app.ui.StarredDestination
-import gr.christianikatragoudia.app.ui.UpdateDestination
 import gr.christianikatragoudia.app.ui.ThemeDestination
 import gr.christianikatragoudia.app.ui.TonalitiesDestination
+import gr.christianikatragoudia.app.ui.UpdateDestination
 import gr.christianikatragoudia.app.ui.VersionsDestination
 import gr.christianikatragoudia.app.ui.WelcomeDestination
 
@@ -53,9 +53,6 @@ fun TheNavHost() {
                 },
                 navigateToOptions = {
                     navController.navigate(OptionsDestination.route)
-                },
-                navigateToUpdate = {
-                    navController.navigate(UpdateDestination.route)
                 },
                 navigateToSong = {
                     navController.navigate("${SongDestination.route}/${it}")

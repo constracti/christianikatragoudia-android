@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -111,6 +113,7 @@ object OptionsDestination : NavDestination {
                         support = stringResource(R.string.update_support),
                         enabled = !processing,
                         onClick = navigateToUpdate,
+                        badge = viewModel.updateCheck.collectAsState(initial = false).value,
                     )
                     AlertListItem(
                         headline = stringResource(R.string.tools_recent_clear_title),
@@ -136,7 +139,6 @@ object OptionsDestination : NavDestination {
                     ListHeader(text = stringResource(R.string.application))
                     NavigationListItem(
                         headline = stringResource(R.string.information),
-                        support = null,
                         enabled = !processing,
                         onClick = navigateToInformation,
                     )
@@ -183,16 +185,22 @@ private fun NavigationListItem(
     support: String? = null,
     enabled: Boolean,
     onClick: () -> Unit,
+    badge: Boolean = false,
 ) {
     ListItem(
         headlineContent = { Text(text = headline) },
         modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
         supportingContent = { if (support != null) Text(text = support) },
         trailingContent = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
-                contentDescription = null,
-            )
+            BadgedBox(badge = {
+                if (badge)
+                    Badge()
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
+                    contentDescription = null,
+                )
+            }
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )
