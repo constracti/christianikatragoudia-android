@@ -44,6 +44,10 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
     }
 
     fun getResultListFlow(query: String): Flow<List<SongTitle>> {
-        return TheDatabase.getInstance(application).songDao().getTitlesByQuery("%$query%")
+        val q = query
+            .replace(Regex("[,'-]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+        return TheDatabase.getInstance(application).songDao().getTitlesByQuery("%$q%")
     }
 }

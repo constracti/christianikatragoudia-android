@@ -33,7 +33,28 @@ interface SongDao {
         SELECT DISTINCT song.id, song.title, song.excerpt
         FROM song
         JOIN chord ON chord.parent = song.id
-        WHERE song.title LIKE :query OR song.content LIKE :query
+        WHERE
+            REPLACE(REPLACE(REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(REPLACE(song.title, '<i>', ' '), '</i>', ' '),
+                        '-', ' '),
+                    '''', ' '),
+                ',', ' '),
+            ' ', '<>'), '><', ''), '<>', ' ') LIKE :query
+            OR
+            REPLACE(REPLACE(REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(REPLACE(
+                                REPLACE(REPLACE(song.content, '<i>', ' '), '</i>', ' '),
+                            CHAR(10), ' '), CHAR(13), ' '),
+                        '-', ' '),
+                    '''', ' '),
+                ',', ' '),
+            ' ', '<>'), '><', ''), '<>', ' ') LIKE :query
         ORDER BY song.title COLLATE UNICODE ASC, song.excerpt COLLATE UNICODE ASC, song.id ASC
         """
     )
