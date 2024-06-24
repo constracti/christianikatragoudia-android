@@ -37,9 +37,7 @@ interface SongDao {
             REPLACE(REPLACE(REPLACE(
                 REPLACE(
                     REPLACE(
-                        REPLACE(
-                            REPLACE(REPLACE(song.title, '<i>', ' '), '</i>', ' '),
-                        '-', ' '),
+                        REPLACE(song.title, '-', ' '),
                     '''', ' '),
                 ',', ' '),
             ' ', '<>'), '><', ''), '<>', ' ') LIKE :query
@@ -49,7 +47,11 @@ interface SongDao {
                     REPLACE(
                         REPLACE(
                             REPLACE(REPLACE(
-                                REPLACE(REPLACE(song.content, '<i>', ' '), '</i>', ' '),
+                                REPLACE(REPLACE(
+                                    REPLACE(REPLACE(
+                                        REPLACE(song.content, '<hr />', ' '),
+                                    '<i>', ' '), '</i>', ' '),
+                                '<em>', ' '), '</em>', ' '),
                             CHAR(10), ' '), CHAR(13), ' '),
                         '-', ' '),
                     '''', ' '),
