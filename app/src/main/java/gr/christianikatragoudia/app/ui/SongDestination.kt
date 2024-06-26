@@ -1,6 +1,5 @@
 package gr.christianikatragoudia.app.ui
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Typeface
 import android.net.Uri
@@ -12,19 +11,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -105,33 +104,25 @@ object SongDestination : NavDestination {
             TheScaffold(
                 song = song,
                 chord = chord,
-                starred = songMeta.starred,
-                tonalities = MusicNote.TONALITIES.filter {
-                    !hiddenTonalities.contains(it)
-                }.toMutableList<MusicNote?>().also {
-                    it.add(0, null)
-                },
-                tonality = chordMeta.tonality,
-                songZoom = songMeta.zoom,
-                chordZoom = chordMeta.zoom,
                 navigateBack = navigateBack,
-                onStarredToggle = if (songMeta.starred) ({
+                starred = songMeta.starred,
+                starredToggle = if (songMeta.starred) ({
                     viewModel.setStarred(false)
                 }) else ({
                     viewModel.setStarred(true)
                 }),
-                onTonalityHide = if (chordMeta.tonality != null) ({
-                    viewModel.setTonality(null)
-                }) else
-                    null,
-                onTonalityReset = if (chordMeta.tonality != chord.tonality) ({
-                    viewModel.setTonality(chord.tonality)
-                }) else
-                    null,
-                onTonalityChange = {
+                tonalityList = MusicNote.TONALITIES.filter {
+                    !hiddenTonalities.contains(it)
+                }.toMutableList<MusicNote?>().also {
+                    it.add(0, null)
+                },
+                tonalitySelected = chordMeta.tonality,
+                tonalityChange = {
                     viewModel.setTonality(it)
                 },
-                onZoomReset = if (chordMeta.tonality == null) {
+                songZoom = songMeta.zoom,
+                chordZoom = chordMeta.zoom,
+                zoomReset = if (chordMeta.tonality == null) {
                     if (songMeta.zoom != 0) ({
                         viewModel.setSongZoom(0)
                     }) else
@@ -142,7 +133,7 @@ object SongDestination : NavDestination {
                     }) else
                         null
                 },
-                onZoomIncrease = if (chordMeta.tonality == null) {
+                zoomIncrease = if (chordMeta.tonality == null) {
                     if (songMeta.zoom < 20) ({
                         viewModel.setSongZoom(songMeta.zoom + 1)
                     }) else
@@ -153,7 +144,7 @@ object SongDestination : NavDestination {
                     }) else
                         null
                 },
-                onZoomDecrease = if (chordMeta.tonality == null) {
+                zoomDecrease = if (chordMeta.tonality == null) {
                     if (songMeta.zoom > -20) ({
                         viewModel.setSongZoom(songMeta.zoom - 1)
                     }) else
@@ -173,49 +164,46 @@ object SongDestination : NavDestination {
 private fun TheScaffold(
     song: Song,
     chord: Chord,
+    navigateBack: () -> Unit,
     starred: Boolean,
-    tonalities: List<MusicNote?>,
-    tonality: MusicNote?,
+    starredToggle: () -> Unit,
+    tonalityList: List<MusicNote?>,
+    tonalitySelected: MusicNote?,
+    tonalityChange: (MusicNote?) -> Unit,
     songZoom: Int,
     chordZoom: Int,
-    navigateBack: () -> Unit,
-    onStarredToggle: () -> Unit,
-    onTonalityHide: (() -> Unit)?,
-    onTonalityReset: (() -> Unit)?,
-    onTonalityChange: (MusicNote?) -> Unit,
-    onZoomReset: (() -> Unit)?,
-    onZoomIncrease: (() -> Unit)?,
-    onZoomDecrease: (() -> Unit)?,
+    zoomReset: (() -> Unit)?,
+    zoomIncrease: (() -> Unit)?,
+    zoomDecrease: (() -> Unit)?,
 ) {
     Scaffold(
         topBar = {
             SongTopBar(
                 song = song,
                 starred = starred,
-                onStarredToggle = onStarredToggle,
+                onStarredToggle = starredToggle,
                 navigateBack = navigateBack,
             )
         },
         bottomBar = {
             SongBottomBar(
-                tonalities = tonalities,
-                tonality = tonality,
-                onTonalityHide = onTonalityHide,
-                onTonalityReset = onTonalityReset,
-                onTonalityChange = onTonalityChange,
-                onZoomReset = onZoomReset,
-                onZoomIncrease = onZoomIncrease,
-                onZoomDecrease = onZoomDecrease,
+                tonalityList = tonalityList,
+                tonalitySelected = tonalitySelected,
+                tonalityDefault = chord.tonality,
+                tonalityChange = tonalityChange,
+                zoomReset = zoomReset,
+                zoomIncrease = zoomIncrease,
+                zoomDecrease = zoomDecrease,
             )
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
     ) {
         Box(modifier = Modifier.padding(it)) {
-            if (tonality == null)
+            if (tonalitySelected == null)
                 SongLyrics(song, songZoom)
             else
-                SongChords(chord, tonality, chordZoom)
+                SongChords(chord, tonalitySelected, chordZoom)
         }
     }
 }
@@ -340,7 +328,6 @@ private fun StarredIconButton(
     }
 }
 
-@SuppressLint("ServiceCast")
 @Composable
 private fun SongTopBarMenu(song: Song) {
     Box {
@@ -384,59 +371,67 @@ private fun SongTopBarMenu(song: Song) {
 
 @Composable
 private fun SongBottomBar(
-    tonalities: List<MusicNote?>,
-    tonality: MusicNote?,
-    onTonalityHide: (() -> Unit)?,
-    onTonalityReset: (() -> Unit)?,
-    onTonalityChange: (MusicNote?) -> Unit,
-    onZoomReset: (() -> Unit)?,
-    onZoomIncrease: (() -> Unit)?,
-    onZoomDecrease: (() -> Unit)?,
+    tonalityList: List<MusicNote?>,
+    tonalitySelected: MusicNote?,
+    tonalityDefault: MusicNote,
+    tonalityChange: (MusicNote?) -> Unit,
+    zoomReset: (() -> Unit)?,
+    zoomIncrease: (() -> Unit)?,
+    zoomDecrease: (() -> Unit)?,
 ) {
     BottomAppBar(containerColor = Color.Transparent) {
-        Text(text = stringResource(R.string.tonality_label))
+        Spacer(modifier = Modifier.size(8.dp))
         Box {
             var expanded by remember { mutableStateOf(false) }
-            BadgedBox(
-                badge = {
-                    Badge(modifier = Modifier.offset(x = (-12).dp, y = 12.dp)) {
-                        Text(text = MusicNote.toNotationOrElse(tonality, MusicNote.NOTATION_NULL))
-                    }
+            FilterChip(
+                selected = tonalitySelected != null,
+                onClick = { expanded = !expanded },
+                label = {
+                    val label = stringResource(R.string.tonality_label)
+                    val chord = MusicNote.toNotationOrNull(tonalitySelected)
+                    Text(text = if (chord != null) "$label: $chord" else label)
                 },
-            ) {
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_piano_24),
-                        contentDescription = stringResource(R.string.tonality_select_text),
-                    )
-                }
-            }
+            )
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
             ) {
-                tonalities.forEach {
+                tonalityList.forEach {
                     val lyricsNotation = stringResource(MusicNote.NOTATION_LYRICS)
                     DropdownMenuItem(
                         text = {
-                            Text(text = MusicNote.toNotationOrElse(it, lyricsNotation))
+                            val tonalityNotation = MusicNote.toNotationOrNull(it)
+                            val defaultLabel = stringResource(R.string.tonality_default_text)
+                            val text = if (tonalityNotation == null)
+                                lyricsNotation
+                            else if (it == tonalityDefault)
+                                "$tonalityNotation $defaultLabel"
+                            else
+                                tonalityNotation
+                            Text(text = text)
                         },
                         onClick = {
                             expanded = false
-                            onTonalityChange(it)
+                            tonalityChange(it)
                         },
+                        trailingIcon = {
+                            if (it == tonalitySelected) {
+                                Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                            }
+                        }
                     )
                 }
             }
         }
+        Spacer(modifier = Modifier.size(8.dp))
         Spacer(modifier = Modifier.weight(1F))
-        IconButton(onClick = onZoomIncrease ?: {}, enabled = onZoomIncrease != null) {
+        IconButton(onClick = zoomIncrease ?: {}, enabled = zoomIncrease != null) {
             Icon(
                 painter = painterResource(R.drawable.baseline_text_increase_24),
                 contentDescription = stringResource(R.string.font_size_increase_text),
             )
         }
-        IconButton(onClick = onZoomDecrease ?: {}, enabled = onZoomDecrease != null) {
+        IconButton(onClick = zoomDecrease ?: {}, enabled = zoomDecrease != null) {
             Icon(
                 painter = painterResource(R.drawable.baseline_text_decrease_24),
                 contentDescription = stringResource(R.string.font_size_decrease_text),
@@ -458,28 +453,26 @@ private fun SongBottomBar(
                     text = { Text(stringResource(R.string.tonality_hide_text)) },
                     onClick = {
                         expanded = false
-                        if (onTonalityHide != null)
-                            onTonalityHide()
+                        tonalityChange(null)
                     },
-                    enabled = onTonalityHide != null,
+                    enabled = tonalitySelected != null,
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.tonality_reset_text)) },
                     onClick = {
                         expanded = false
-                        if (onTonalityReset != null)
-                            onTonalityReset()
+                        tonalityChange(tonalityDefault)
                     },
-                    enabled = onTonalityReset != null,
+                    enabled = tonalitySelected != tonalityDefault,
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.font_size_reset_text)) },
                     onClick = {
                         expanded = false
-                        if (onZoomReset != null)
-                            onZoomReset()
+                        if (zoomReset != null)
+                            zoomReset()
                     },
-                    enabled = onZoomReset != null,
+                    enabled = zoomReset != null,
                 )
             }
         }
@@ -573,23 +566,21 @@ private fun SongLyricsPreview() {
         TheScaffold(
             song = thavorSong,
             chord = thavorChord,
+            navigateBack = {},
             starred = false,
-            tonalities = MusicNote.TONALITIES.filter {
+            starredToggle = {},
+            tonalityList = MusicNote.TONALITIES.filter {
                 !MusicNote.ENHARMONIC_TONALITIES.contains(it)
             }.toMutableList<MusicNote?>().also {
                 it.add(0, null)
             },
-            tonality = null,
+            tonalitySelected = null,
+            tonalityChange = {},
             songZoom = 0,
             chordZoom = 0,
-            navigateBack = {},
-            onStarredToggle = {},
-            onTonalityHide = null,
-            onTonalityReset = {},
-            onTonalityChange = {},
-            onZoomReset = {},
-            onZoomIncrease = {},
-            onZoomDecrease = {},
+            zoomReset = {},
+            zoomIncrease = {},
+            zoomDecrease = {},
         )
     }
 }

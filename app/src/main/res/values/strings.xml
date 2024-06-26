@@ -15,11 +15,11 @@
     <string name="error">Σφάλμα</string>
     <string name="starred_add">Προσθήκη στα αγαπημένα</string>
     <string name="starred_remove">Αφαίρεση από τα αγαπημένα</string>
-    <string name="tonality_label">Συγχορδίες:</string>
+    <string name="tonality_label">Συγχορδίες</string>
     <string name="tonality_hide_text">Απόκρυψη συγχορδιών</string>
     <string name="tonality_reset_text">Επιλογή αρχικής τονικότητας</string>
-    <string name="tonality_select_text">Επιλογή τονικότητας</string>
     <string name="tonality_none_text">(μόνο στίχοι)</string>
+    <string name="tonality_default_text">(προεπιλογή)</string>
     <string name="font_size_reset_text">Επαναφορά μεγέθους γραμματοσειράς</string>
     <string name="font_size_decrease_text">Μείωση μεγέθους γραμματοσειράς</string>
     <string name="font_size_increase_text">Αύξηση μεγέθους γραμματοσειράς</string>
