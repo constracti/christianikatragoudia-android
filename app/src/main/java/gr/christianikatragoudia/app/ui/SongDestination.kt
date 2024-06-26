@@ -49,6 +49,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -288,7 +289,11 @@ private fun SongTopBar(
 ) {
     TopAppBar(
         title = {
-            Text(song.title)
+            Text(
+                text = song.title,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+            )
         },
         navigationIcon = {
             IconButton(onClick = navigateBack) {
