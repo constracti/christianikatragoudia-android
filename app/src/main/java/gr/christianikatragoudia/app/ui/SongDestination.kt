@@ -1,6 +1,7 @@
 package gr.christianikatragoudia.app.ui
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Typeface
 import android.net.Uri
 import android.text.Html
@@ -17,8 +18,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -30,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,6 +46,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -304,8 +312,71 @@ private fun SongTopBar(
             }
         },
         actions = {
+            val configuration = LocalConfiguration.current
+            val context = LocalContext.current
+            var infoVisible by remember { mutableStateOf(false) }
+            val infoText = stringResource(R.string.information)
+            val infoIcon = Icons.Default.Info
+            val infoAction = {
+                infoVisible = true
+            }
+            val openText = stringResource(R.string.open_link)
+            val openIcon = Icons.AutoMirrored.Default.ExitToApp
+            val openAction = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.permalink))
+                context.startActivity(intent)
+            }
+            val shareText = stringResource(R.string.send_link)
+            val shareIcon = Icons.Default.Share
+            val shareAction = {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, song.title)
+                    putExtra(Intent.EXTRA_TEXT, song.permalink)
+                }
+                context.startActivity(Intent.createChooser(intent, shareText))
+                TheAnalytics.logShare("url", song.permalink)
+            }
             StarredIconButton(starred, onStarredToggle)
-            SongTopBarMenu(song)
+            when (configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> {
+                    MyIconButton(text = infoText, icon = infoIcon, action = infoAction)
+                    MyIconButton(text = openText, icon = openIcon, action = openAction)
+                    MyIconButton(text = shareText, icon = shareIcon, action = shareAction)
+                }
+                else -> {
+                    Box {
+                        var expanded by remember { mutableStateOf(false) }
+                        val collapse = { expanded = false }
+                        IconButton(onClick = { expanded = !expanded }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.more),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = collapse,
+                        ) {
+                            MyDropdownMenuItem(infoText, infoIcon, infoAction, collapse)
+                            MyDropdownMenuItem(openText, openIcon, openAction, collapse)
+                            MyDropdownMenuItem(shareText, shareIcon, shareAction, collapse)
+                        }
+                    }
+                }
+            }
+            if (infoVisible) {
+                AlertDialog(
+                    onDismissRequest = { infoVisible = false },
+                    confirmButton = {
+                        TextButton(onClick = { infoVisible = false }) {
+                            Text(text = stringResource(R.string.close))
+                        }
+                    },
+                    title = { Text(text = song.title, modifier = Modifier.fillMaxWidth()) },
+                    text = { Text(text = song.excerpt) },
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
@@ -334,44 +405,35 @@ private fun StarredIconButton(
 }
 
 @Composable
-private fun SongTopBarMenu(song: Song) {
-    Box {
-        var expanded by remember { mutableStateOf(false) }
-        IconButton(onClick = { expanded = !expanded }) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.more),
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            val context = LocalContext.current
-            DropdownMenuItem(
-                text = { Text(text = stringResource(R.string.open_link)) },
-                onClick = {
-                    expanded = false
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.permalink))
-                    context.startActivity(intent)
-                },
-            )
-            val shareText = stringResource(R.string.send_link)
-            DropdownMenuItem(
-                text = { Text(text = shareText) },
-                onClick = {
-                    expanded = false
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_SUBJECT, song.title)
-                        putExtra(Intent.EXTRA_TEXT, song.permalink)
-                    }
-                    context.startActivity(Intent.createChooser(intent, shareText))
-                    TheAnalytics.logShare("url", song.permalink)
-                },
-            )
-        }
+private fun MyIconButton(
+    text: String,
+    icon: ImageVector,
+    action: () -> Unit,
+) {
+    IconButton(onClick = action) {
+        Icon(imageVector = icon, contentDescription = text)
     }
+}
+
+@Composable
+private fun MyDropdownMenuItem(
+    text: String,
+    icon: ImageVector,
+    action: () -> Unit,
+    collapse: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = {
+            Text(text = text)
+        },
+        onClick = {
+            collapse()
+            action()
+        },
+        leadingIcon = {
+            Icon(imageVector = icon, contentDescription = null)
+        },
+    )
 }
 
 @Composable

@@ -11,6 +11,7 @@ import gr.christianikatragoudia.app.network.TheAnalytics
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -48,6 +49,8 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
             .replace(Regex("[,'-]"), " ")
             .replace(Regex("\\s+"), " ")
             .trim()
-        return TheDatabase.getInstance(application).songDao().getTitlesByQuery("%$q%")
+        return TheDatabase.getInstance(application).songDao().getTitlesByQuery("%$q%").map {
+            it.map { songTitle -> songTitle.simplifyExcerpt() }
+        }
     }
 }

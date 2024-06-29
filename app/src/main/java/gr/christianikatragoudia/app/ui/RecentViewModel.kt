@@ -33,7 +33,7 @@ class RecentViewModel(application: TheApplication) : ViewModel() {
     )
 
     val uiState = TheDatabase.getInstance(application).songDao().getTitlesByVisited().map {
-        UiState(resultList = it, loading = false)
+        UiState(resultList = it.map { songTitle -> songTitle.simplifyExcerpt() }, loading = false)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

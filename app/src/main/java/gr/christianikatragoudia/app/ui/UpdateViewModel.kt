@@ -98,7 +98,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                     if (action != null) {
                         if (!actions.containsKey(action))
                             actions[action] = mutableListOf()
-                        actions[action]!!.add(SongTitle(song.id, song.title, song.excerpt))
+                        actions[action]!!.add(SongTitle(song).simplifyExcerpt())
                     }
                 }
 
