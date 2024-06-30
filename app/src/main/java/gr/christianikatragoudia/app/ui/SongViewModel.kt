@@ -31,14 +31,16 @@ class SongViewModel(
         return song.title + " – " + application.getString(R.string.app_name)
     }
 
+    val hiddenTonalities = SettingsRepo(application).hiddenTonalities
+
     data class UiState(
         val song: Song? = null,
         val chord: Chord? = null,
         val songMeta: SongMeta? = null,
         val chordMeta: ChordMeta? = null,
-        val hiddenTonalities: Set<MusicNote> = setOf(),
         val loading: Boolean = true,
         val passed: Boolean = false,
+        val expanded: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -54,14 +56,12 @@ class SongViewModel(
                 TheDatabase.getInstance(application).songMetaDao().upsert(songMeta)
                 val chordMeta = TheDatabase.getInstance(application).chordMetaDao().getById(chord.id)
                     ?: ChordMeta(chord.id)
-                val hiddenTonalities = SettingsRepo(application).getHiddenTonalities()
                 _uiState.update {
                     it.copy(
                         song = song,
                         chord = chord,
                         songMeta = songMeta,
                         chordMeta = chordMeta,
-                        hiddenTonalities = hiddenTonalities,
                         loading = false,
                         passed = true,
                     )
@@ -122,6 +122,12 @@ class SongViewModel(
         }
         viewModelScope.launch {
             TheDatabase.getInstance(application).chordMetaDao().upsert(chordMeta)
+        }
+    }
+
+    fun setExpanded(expanded: Boolean) {
+        _uiState.update {
+            it.copy(expanded = expanded)
         }
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -109,7 +113,9 @@ object SongDestination : NavDestination {
             val chord = uiState.chord!!
             val songMeta = uiState.songMeta!!
             val chordMeta = uiState.chordMeta!!
-            val hiddenTonalities = uiState.hiddenTonalities
+            val hiddenTonalities by viewModel.hiddenTonalities.collectAsState(
+                initial = MusicNote.ENHARMONIC_TONALITIES,
+            )
             TheScaffold(
                 song = song,
                 chord = chord,
@@ -164,11 +170,14 @@ object SongDestination : NavDestination {
                     }) else
                         null
                 },
+                expanded = uiState.expanded,
+                expandedSet = { viewModel.setExpanded(it) },
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TheScaffold(
     song: Song,
@@ -184,26 +193,44 @@ private fun TheScaffold(
     zoomReset: (() -> Unit)?,
     zoomIncrease: (() -> Unit)?,
     zoomDecrease: (() -> Unit)?,
+    expanded: Boolean,
+    expandedSet: (Boolean) -> Unit,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SongTopBar(
                 song = song,
                 starred = starred,
                 onStarredToggle = starredToggle,
                 navigateBack = navigateBack,
+                scrollBehavior = scrollBehavior,
             )
         },
         bottomBar = {
-            SongBottomBar(
-                tonalityList = tonalityList,
-                tonalitySelected = tonalitySelected,
-                tonalityDefault = chord.tonality,
-                tonalityChange = tonalityChange,
-                zoomReset = zoomReset,
-                zoomIncrease = zoomIncrease,
-                zoomDecrease = zoomDecrease,
-            )
+            if (!expanded) {
+                SongBottomBar(
+                    tonalityList = tonalityList,
+                    tonalitySelected = tonalitySelected,
+                    tonalityDefault = chord.tonality,
+                    tonalityChange = tonalityChange,
+                    zoomReset = zoomReset,
+                    zoomIncrease = zoomIncrease,
+                    zoomDecrease = zoomDecrease,
+                    expandedSet = expandedSet,
+                )
+            }
+        },
+        floatingActionButton = {
+            if (expanded) {
+                FloatingActionButton(onClick = { expandedSet(false) }) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_fullscreen_exit_24),
+                        contentDescription = stringResource(R.string.full_screen_disable_text),
+                    )
+                }
+            }
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
@@ -252,11 +279,7 @@ private fun SongLyrics(song: Song, songZoom: Int) {
 }
 
 @Composable
-private fun SongChords(
-    chord: Chord,
-    tonality: MusicNote,
-    chordZoom: Int,
-) {
+private fun SongChords(chord: Chord, tonality: MusicNote, chordZoom: Int) {
     val interval = MusicInterval.getByNotes(chord.tonality, tonality)
     val text = buildAnnotatedString {
         chord.content.lines().forEachIndexed { index, s ->
@@ -294,6 +317,7 @@ private fun SongTopBar(
     starred: Boolean,
     onStarredToggle: () -> Unit,
     navigateBack: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior,
 ) {
     TopAppBar(
         title = {
@@ -380,7 +404,9 @@ private fun SongTopBar(
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
-        )
+            scrolledContainerColor = Color.Transparent,
+        ),
+        scrollBehavior = scrollBehavior,
     )
 }
 
@@ -445,6 +471,7 @@ private fun SongBottomBar(
     zoomReset: (() -> Unit)?,
     zoomIncrease: (() -> Unit)?,
     zoomDecrease: (() -> Unit)?,
+    expandedSet: (Boolean) -> Unit,
 ) {
     BottomAppBar(containerColor = Color.Transparent) {
         Spacer(modifier = Modifier.size(8.dp))
@@ -492,6 +519,12 @@ private fun SongBottomBar(
         }
         Spacer(modifier = Modifier.size(8.dp))
         Spacer(modifier = Modifier.weight(1F))
+        IconButton(onClick = { expandedSet(true) }) {
+            Icon(
+                painter = painterResource(R.drawable.baseline_fullscreen_24),
+                contentDescription = stringResource(R.string.full_screen_enable_text),
+            )
+        }
         IconButton(onClick = zoomIncrease ?: {}, enabled = zoomIncrease != null) {
             Icon(
                 painter = painterResource(R.drawable.baseline_text_increase_24),
@@ -648,6 +681,8 @@ private fun SongLyricsPreview() {
             zoomReset = {},
             zoomIncrease = {},
             zoomDecrease = {},
+            expanded = false,
+            expandedSet = {},
         )
     }
 }

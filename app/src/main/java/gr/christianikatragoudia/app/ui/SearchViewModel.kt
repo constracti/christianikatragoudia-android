@@ -35,8 +35,6 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
 
     val updateCheck = SettingsRepo(application).updateCheck
 
-    // TODO combine query and results in StateFlow
-
     fun setQuery(query: String) {
         _uiState.update {
             it.copy(query = query)

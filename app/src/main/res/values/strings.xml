@@ -23,6 +23,8 @@
     <string name="font_size_reset_text">Επαναφορά μεγέθους γραμματοσειράς</string>
     <string name="font_size_decrease_text">Μείωση μεγέθους γραμματοσειράς</string>
     <string name="font_size_increase_text">Αύξηση μεγέθους γραμματοσειράς</string>
+    <string name="full_screen_enable_text">Ενεργοποίηση προβολής πλήρους οθόνης</string>
+    <string name="full_screen_disable_text">Απενεργοποίηση προβολής πλήρους οθόνης</string>
     <string name="open_link">Άνοιγμα συνδέσμου</string>
     <string name="send_link">Κοινοποίηση συνδέσμου</string>
     <string name="search">Αναζήτηση</string>

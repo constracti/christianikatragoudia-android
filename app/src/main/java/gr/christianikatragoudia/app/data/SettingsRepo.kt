@@ -49,8 +49,6 @@ class SettingsRepo(context: Context) {
             }
         }
 
-    suspend fun getHiddenTonalities(): Set<MusicNote> = hiddenTonalities.first()
-
     suspend fun setHiddenTonalities(tonalities: Set<MusicNote>?) {
         dataStore.edit {
             if (tonalities != null) {
