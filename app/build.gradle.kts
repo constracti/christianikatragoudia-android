@@ -15,8 +15,8 @@ android {
         applicationId = "gr.christianikatragoudia.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.3.1"
+        versionCode = 8
+        versionName = "1.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -61,7 +61,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     //implementation("androidx.compose.ui:ui")
     //implementation("androidx.compose.ui:ui-graphics")
-    //implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.ui:ui-tooling-preview")
     //implementation("androidx.core:core-ktx:1.13.1")
     //implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     //implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")

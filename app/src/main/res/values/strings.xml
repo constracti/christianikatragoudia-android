@@ -115,6 +115,9 @@
     <string-array name="version_1_3">
         <item>Έλεγχος ενημερώσεων από την ιστοσελίδα</item>
         <item>Ειδοποίηση για νέο περιεχόμενο</item>
+        <item>Βελτίωση αναζήτησης</item>
+        <item>Εμφάνιση συντελεστών τραγουδιού</item>
+        <item>Προβολή πλήρους οθόνης</item>
     </string-array>
     <string name="starred">Αγαπημένα</string>
     <string name="recent">Πρόσφατα</string>
