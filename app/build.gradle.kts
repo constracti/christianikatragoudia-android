@@ -15,8 +15,8 @@ android {
         applicationId = "gr.christianikatragoudia.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.3.2"
+        versionCode = 9
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -56,7 +56,7 @@ android {
 dependencies {
 
     //implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation(platform("androidx.compose:compose-bom:2024.08.00"))
     //implementation("androidx.compose.foundation:foundation-layout-android:1.6.8")
     implementation("androidx.compose.material3:material3")
     //implementation("androidx.compose.ui:ui")
@@ -92,10 +92,10 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
 
     // WorkManager dependency
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
 
     // Add the dependency for the Analytics library
     // When using the BoM, you don't specify versions in Firebase library dependencies

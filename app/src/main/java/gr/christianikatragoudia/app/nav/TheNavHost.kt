@@ -101,7 +101,7 @@ fun TheNavHost() {
         }
         composable(
             route = SongDestination.routeWithArgs,
-            arguments = listOf(navArgument(SongDestination.songIdArg) {
+            arguments = listOf(navArgument(SongDestination.SONG_ID_ARG) {
                 type = NavType.IntType
             })
         ) {

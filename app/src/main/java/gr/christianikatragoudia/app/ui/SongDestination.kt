@@ -6,7 +6,8 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.text.Html
 import android.text.style.StyleSpan
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,8 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -34,23 +35,32 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,11 +71,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -81,22 +94,25 @@ import gr.christianikatragoudia.app.music.MusicNote
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.TheAnalytics
 import gr.christianikatragoudia.app.ui.theme.ChristianikaTragoudiaTheme
+import kotlin.math.abs
+import kotlin.math.log2
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 object SongDestination : NavDestination {
 
     private val factory = viewModelFactory {
         initializer {
             SongViewModel(
-                songId = this.createSavedStateHandle()[songIdArg] ?: 0,
+                songId = this.createSavedStateHandle()[SONG_ID_ARG] ?: 0,
                 application = this[APPLICATION_KEY] as TheApplication,
             )
         }
     }
 
     override val route = "song"
-    const val songIdArg = "songId"
-    val routeWithArgs = "$route/{$songIdArg}"
+    const val SONG_ID_ARG = "songId"
+    val routeWithArgs = "$route/{$SONG_ID_ARG}"
 
     @Composable
     fun TheScreen(
@@ -148,28 +164,11 @@ object SongDestination : NavDestination {
                     }) else
                         null
                 },
-                zoomIncrease = if (chordMeta.tonality == null) {
-                    if (songMeta.zoom < 20) ({
-                        viewModel.setSongZoom(songMeta.zoom + 1)
-                    }) else
-                        null
-                } else {
-                    if (chordMeta.zoom < 20) ({
-                        viewModel.setChordZoom(chordMeta.zoom + 1)
-                    }) else
-                        null
-                },
-                zoomDecrease = if (chordMeta.tonality == null) {
-                    if (songMeta.zoom > -20) ({
-                        viewModel.setSongZoom(songMeta.zoom - 1)
-                    }) else
-                        null
-                } else {
-                    if (chordMeta.zoom > -20) ({
-                        viewModel.setChordZoom(chordMeta.zoom - 1)
-                    }) else
-                        null
-                },
+                zoomChange = if (chordMeta.tonality == null) ({
+                    viewModel.setSongZoom(it)
+                }) else ({
+                    viewModel.setChordZoom(it)
+                }),
                 expanded = uiState.expanded,
                 expandedSet = { viewModel.setExpanded(it) },
             )
@@ -191,21 +190,18 @@ private fun TheScaffold(
     songZoom: Int,
     chordZoom: Int,
     zoomReset: (() -> Unit)?,
-    zoomIncrease: (() -> Unit)?,
-    zoomDecrease: (() -> Unit)?,
+    zoomChange: (Int) -> Unit,
     expanded: Boolean,
     expandedSet: (Boolean) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
+            // TODO hide on fullscreen
             SongTopBar(
                 song = song,
                 starred = starred,
                 onStarredToggle = starredToggle,
                 navigateBack = navigateBack,
-                scrollBehavior = scrollBehavior,
             )
         },
         bottomBar = {
@@ -216,98 +212,171 @@ private fun TheScaffold(
                     tonalityDefault = chord.tonality,
                     tonalityChange = tonalityChange,
                     zoomReset = zoomReset,
-                    zoomIncrease = zoomIncrease,
-                    zoomDecrease = zoomDecrease,
                     expandedSet = expandedSet,
                 )
             }
         },
         floatingActionButton = {
             if (expanded) {
-                FloatingActionButton(onClick = { expandedSet(false) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_fullscreen_exit_24),
-                        contentDescription = stringResource(R.string.full_screen_disable_text),
-                    )
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip {
+                        Text(
+                            text = stringResource(id = R.string.full_screen_disable_text),
+                            textAlign = TextAlign.Center,
+                        )
+                    } },
+                    state = rememberTooltipState(),
+                ) {
+                    FloatingActionButton(onClick = { expandedSet(false) }) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_fullscreen_exit_24),
+                            contentDescription = stringResource(R.string.full_screen_disable_text),
+                        )
+                    }
                 }
             }
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
     ) {
-        Box(modifier = Modifier.padding(it)) {
-            if (tonalitySelected == null)
-                SongLyrics(song, songZoom)
-            else
-                SongChords(chord, tonalitySelected, chordZoom)
-        }
-    }
-}
-
-@Composable
-private fun SongLyrics(song: Song, songZoom: Int) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(8.dp)
-        ,
-    ) {
-        song.content.split("<hr />").forEachIndexed { index, s ->
-            val source = s.replace("\n", "<br>")
-            val spanned = Html.fromHtml(source, 0)
-            val builder = AnnotatedString.Builder(spanned.toString())
-            val spanArray = spanned.getSpans(0, spanned.length, StyleSpan::class.java)
-            spanArray.forEach {
-                when (it.style) {
-                    Typeface.ITALIC -> builder.addStyle(
-                        style = SpanStyle(fontStyle = FontStyle.Italic),
-                        start = spanned.getSpanStart(it),
-                        end = spanned.getSpanEnd(it),
-                    )
-                }
-            }
-            if (index > 0)
-                HorizontalDivider()
-            Text(
-                text = builder.toAnnotatedString(),
-                fontSize = 16.sp * 2F.pow(songZoom / 10F),
-                lineHeight = 24.sp * 2F.pow(songZoom / 10F),
-            )
-        }
-    }
-}
-
-@Composable
-private fun SongChords(chord: Chord, tonality: MusicNote, chordZoom: Int) {
-    val interval = MusicInterval.getByNotes(chord.tonality, tonality)
-    val text = buildAnnotatedString {
-        chord.content.lines().forEachIndexed { index, s ->
-            if (index > 0)
-                append("\n")
-            val isChordLine = s.isNotEmpty() &&
-                    s.filter { char -> char.isWhitespace() }.length * 1F / s.length >= .5F
-            if (isChordLine) {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(interval.transposeLine(s))
-                }
-            } else {
-                append(s)
-            }
-        }
-    }
-    Text(
-        text,
-        modifier = Modifier
+        val modifier = Modifier
+            .padding(it)
             .fillMaxSize()
-            .horizontalScroll(rememberScrollState())
-            .verticalScroll(rememberScrollState())
-            .padding(8.dp)
-        ,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 16.sp * 2F.pow(chordZoom / 10F),
-        lineHeight = 24.sp * 2F.pow(chordZoom / 10F),
-    )
+            .clipToBounds()
+        if (tonalitySelected == null)
+            SongLyrics(song, modifier, songZoom, zoomChange)
+        else
+            SongChords(chord, tonalitySelected, modifier, chordZoom, zoomChange)
+    }
+}
+
+@Composable
+private fun SongLyrics(
+    song: Song,
+    modifier: Modifier = Modifier,
+    size: Int = 0,
+    sizeChange: (Int) -> Unit = {},
+) {
+    var zoom by remember { mutableFloatStateOf(2f.pow(size / 10f)) }
+    if (abs(10f * log2(zoom) - size) > .5f)
+        zoom = 2f.pow(size / 10f)
+    var pan by remember { mutableFloatStateOf(0f) }
+    var outerHeight by remember { mutableIntStateOf(0) }
+    var innerHeight by remember { mutableIntStateOf(0) }
+    val state = rememberTransformableState { zoomDiff, panDiff, _ ->
+        val minZoom = 2f.pow(-2)
+        val maxZoom = 2f.pow(+2)
+        zoom = clamp(zoom * zoomDiff, minZoom, maxZoom)
+        val newSize = (10f * log2(zoom)).roundToInt()
+        if (newSize != size)
+            sizeChange(newSize)
+        val minPan = minOf((outerHeight - innerHeight), 0).toFloat()
+        val maxPan = 0f
+        pan = clamp(pan + panDiff.y, minPan, maxPan)
+    }
+    Box(
+        modifier = modifier
+            .transformable(state = state)
+            .onSizeChanged { outerHeight = it.height },
+    ) {
+        Column(
+            modifier = Modifier
+                .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                .graphicsLayer(translationY = pan)
+                .onSizeChanged { innerHeight = it.height }
+                .padding(8.dp),
+        ) {
+            song.content.split("<hr />").forEachIndexed { index, s ->
+                val source = s.replace("\n", "<br>")
+                val spanned = Html.fromHtml(source, 0)
+                val builder = AnnotatedString.Builder(spanned.toString())
+                val spanArray = spanned.getSpans(0, spanned.length, StyleSpan::class.java)
+                spanArray.forEach {
+                    when (it.style) {
+                        Typeface.ITALIC -> builder.addStyle(
+                            style = SpanStyle(fontStyle = FontStyle.Italic),
+                            start = spanned.getSpanStart(it),
+                            end = spanned.getSpanEnd(it),
+                        )
+                    }
+                }
+                if (index > 0)
+                    HorizontalDivider()
+                Text(
+                    text = builder.toAnnotatedString(),
+                    fontSize = 16.sp * zoom,
+                    lineHeight = 24.sp * zoom,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SongChords(
+    chord: Chord,
+    tonality: MusicNote,
+    modifier: Modifier = Modifier,
+    size: Int = 0,
+    sizeChange: (Int) -> Unit = {},
+) {
+    var zoom by remember { mutableFloatStateOf(2f.pow(size / 10f)) }
+    if (abs(10f * log2(zoom) - size) > .5f)
+        zoom = 2f.pow(size / 10f)
+    var pan by remember { mutableStateOf(Offset.Zero) }
+    var outerSize by remember { mutableStateOf(IntSize.Zero) }
+    var innerSize by remember { mutableStateOf(IntSize.Zero) }
+    val state = rememberTransformableState { zoomDiff, panDiff, _ ->
+        val minZoom = 2f.pow(-2)
+        val maxZoom = 2f.pow(+2)
+        zoom = clamp(zoom * zoomDiff, minZoom, maxZoom)
+        val newSize = (10f * log2(zoom)).roundToInt()
+        if (newSize != size)
+            sizeChange(newSize)
+        val minPanX = minOf(outerSize.width - innerSize.width, 0).toFloat()
+        val minPanY = minOf(outerSize.height - innerSize.height, 0).toFloat()
+        val maxPanX = 0f
+        val maxPanY = 0f
+        pan = Offset(
+            x = clamp(pan.x + panDiff.x, minPanX, maxPanX),
+            y = clamp(pan.y + panDiff.y, minPanY, maxPanY),
+        )
+    }
+    Box(
+        modifier = modifier
+            .transformable(state = state)
+            .onSizeChanged { outerSize = it },
+    ) {
+        val interval = MusicInterval.getByNotes(chord.tonality, tonality)
+        val text = buildAnnotatedString {
+            chord.content.lines().forEachIndexed { index, s ->
+                if (index > 0)
+                    append("\n")
+                val isChordLine = s.isNotEmpty() &&
+                        s.filter { char -> char.isWhitespace() }.length * 1F / s.length >= .5F
+                if (isChordLine) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(interval.transposeLine(s))
+                    }
+                } else {
+                    append(s)
+                }
+            }
+        }
+        Text(
+            text,
+            modifier = Modifier
+                .wrapContentSize(align = Alignment.TopStart, unbounded = true)
+                .graphicsLayer(translationX = pan.x, translationY = pan.y)
+                .onSizeChanged { innerSize = it }
+                .padding(8.dp)
+            ,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 16.sp * zoom,
+            lineHeight = 24.sp * zoom,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -317,7 +386,6 @@ private fun SongTopBar(
     starred: Boolean,
     onStarredToggle: () -> Unit,
     navigateBack: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior,
 ) {
     TopAppBar(
         title = {
@@ -364,9 +432,9 @@ private fun SongTopBar(
             StarredIconButton(starred, onStarredToggle)
             when (configuration.orientation) {
                 Configuration.ORIENTATION_LANDSCAPE -> {
-                    MyIconButton(text = infoText, icon = infoIcon, action = infoAction)
-                    MyIconButton(text = openText, icon = openIcon, action = openAction)
-                    MyIconButton(text = shareText, icon = shareIcon, action = shareAction)
+                    VectorIconButton(text = infoText, icon = infoIcon, action = infoAction)
+                    VectorIconButton(text = openText, icon = openIcon, action = openAction)
+                    VectorIconButton(text = shareText, icon = shareIcon, action = shareAction)
                 }
                 else -> {
                     Box {
@@ -406,7 +474,6 @@ private fun SongTopBar(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
         ),
-        scrollBehavior = scrollBehavior,
     )
 }
 
@@ -415,29 +482,55 @@ private fun StarredIconButton(
     starred: Boolean,
     onStarredToggle: () -> Unit,
 ) {
-    IconButton(onClick = onStarredToggle) {
-        if (starred) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_star_24),
-                contentDescription = stringResource(R.string.starred_remove),
-            )
-        } else {
-            Icon(
-                painter = painterResource(R.drawable.baseline_star_outline_24),
-                contentDescription = stringResource(R.string.starred_add),
-            )
-        }
+    if (starred) {
+        PainterIconButton(
+            text = stringResource(R.string.starred_remove),
+            icon = painterResource(R.drawable.baseline_star_24),
+            action = onStarredToggle,
+        )
+    } else {
+        PainterIconButton(
+            text = stringResource(R.string.starred_add),
+            icon = painterResource(R.drawable.baseline_star_outline_24),
+            action = onStarredToggle,
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MyIconButton(
+private fun VectorIconButton(
     text: String,
     icon: ImageVector,
     action: () -> Unit,
 ) {
-    IconButton(onClick = action) {
-        Icon(imageVector = icon, contentDescription = text)
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
+        state = rememberTooltipState(),
+    ) {
+        IconButton(onClick = action) {
+            Icon(imageVector = icon, contentDescription = text)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PainterIconButton(
+    text: String,
+    icon: Painter,
+    action: () -> Unit,
+    enabled: Boolean = true,
+) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
+        state = rememberTooltipState(),
+    ) {
+        IconButton(onClick = action, enabled = enabled) {
+            Icon(painter = icon, contentDescription = text)
+        }
     }
 }
 
@@ -469,8 +562,6 @@ private fun SongBottomBar(
     tonalityDefault: MusicNote,
     tonalityChange: (MusicNote?) -> Unit,
     zoomReset: (() -> Unit)?,
-    zoomIncrease: (() -> Unit)?,
-    zoomDecrease: (() -> Unit)?,
     expandedSet: (Boolean) -> Unit,
 ) {
     BottomAppBar(containerColor = Color.Transparent) {
@@ -519,24 +610,11 @@ private fun SongBottomBar(
         }
         Spacer(modifier = Modifier.size(8.dp))
         Spacer(modifier = Modifier.weight(1F))
-        IconButton(onClick = { expandedSet(true) }) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_fullscreen_24),
-                contentDescription = stringResource(R.string.full_screen_enable_text),
-            )
-        }
-        IconButton(onClick = zoomIncrease ?: {}, enabled = zoomIncrease != null) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_text_increase_24),
-                contentDescription = stringResource(R.string.font_size_increase_text),
-            )
-        }
-        IconButton(onClick = zoomDecrease ?: {}, enabled = zoomDecrease != null) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_text_decrease_24),
-                contentDescription = stringResource(R.string.font_size_decrease_text),
-            )
-        }
+        PainterIconButton(
+            text = stringResource(R.string.full_screen_enable_text),
+            icon = painterResource(R.drawable.baseline_fullscreen_24),
+            action = { expandedSet(true) },
+        )
         Box {
             var expanded by remember { mutableStateOf(false) }
             IconButton(onClick = { expanded = !expanded }) {
@@ -679,8 +757,7 @@ private fun SongLyricsPreview() {
             songZoom = 0,
             chordZoom = 0,
             zoomReset = {},
-            zoomIncrease = {},
-            zoomDecrease = {},
+            zoomChange = {},
             expanded = false,
             expandedSet = {},
         )
