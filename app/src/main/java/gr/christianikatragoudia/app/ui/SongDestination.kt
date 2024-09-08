@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.text.Html
 import android.text.style.StyleSpan
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -152,25 +152,11 @@ object SongDestination : NavDestination {
                     viewModel.setTonality(it)
                 },
                 songZoom = songMeta.zoom,
+                songZoomChange = { viewModel.setSongZoom(it) },
                 chordZoom = chordMeta.zoom,
-                zoomReset = if (chordMeta.tonality == null) {
-                    if (songMeta.zoom != 0) ({
-                        viewModel.setSongZoom(0)
-                    }) else
-                        null
-                } else {
-                    if (chordMeta.zoom != 0) ({
-                        viewModel.setChordZoom(0)
-                    }) else
-                        null
-                },
-                zoomChange = if (chordMeta.tonality == null) ({
-                    viewModel.setSongZoom(it)
-                }) else ({
-                    viewModel.setChordZoom(it)
-                }),
+                chordZoomChange = { viewModel.setChordZoom(it) },
                 expanded = uiState.expanded,
-                expandedSet = { viewModel.setExpanded(it) },
+                expandedChange = { viewModel.setExpanded(it) },
             )
         }
     }
@@ -188,21 +174,25 @@ private fun TheScaffold(
     tonalitySelected: MusicNote?,
     tonalityChange: (MusicNote?) -> Unit,
     songZoom: Int,
+    songZoomChange: (Int) -> Unit,
     chordZoom: Int,
-    zoomReset: (() -> Unit)?,
-    zoomChange: (Int) -> Unit,
+    chordZoomChange: (Int) -> Unit,
     expanded: Boolean,
-    expandedSet: (Boolean) -> Unit,
+    expandedChange: (Boolean) -> Unit,
 ) {
+    BackHandler(enabled = expanded) {
+        expandedChange(false)
+    }
     Scaffold(
         topBar = {
-            // TODO hide on fullscreen
-            SongTopBar(
-                song = song,
-                starred = starred,
-                onStarredToggle = starredToggle,
-                navigateBack = navigateBack,
-            )
+            if (!expanded) {
+                SongTopBar(
+                    song = song,
+                    starred = starred,
+                    onStarredToggle = starredToggle,
+                    navigateBack = navigateBack,
+                )
+            }
         },
         bottomBar = {
             if (!expanded) {
@@ -211,30 +201,10 @@ private fun TheScaffold(
                     tonalitySelected = tonalitySelected,
                     tonalityDefault = chord.tonality,
                     tonalityChange = tonalityChange,
-                    zoomReset = zoomReset,
-                    expandedSet = expandedSet,
+                    zoom = if (tonalitySelected == null) songZoom else chordZoom,
+                    zoomChange = if (tonalitySelected == null) songZoomChange else chordZoomChange,
+                    expandedChange = expandedChange,
                 )
-            }
-        },
-        floatingActionButton = {
-            if (expanded) {
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = { PlainTooltip {
-                        Text(
-                            text = stringResource(id = R.string.full_screen_disable_text),
-                            textAlign = TextAlign.Center,
-                        )
-                    } },
-                    state = rememberTooltipState(),
-                ) {
-                    FloatingActionButton(onClick = { expandedSet(false) }) {
-                        Icon(
-                            painter = painterResource(R.drawable.baseline_fullscreen_exit_24),
-                            contentDescription = stringResource(R.string.full_screen_disable_text),
-                        )
-                    }
-                }
             }
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
@@ -245,9 +215,9 @@ private fun TheScaffold(
             .fillMaxSize()
             .clipToBounds()
         if (tonalitySelected == null)
-            SongLyrics(song, modifier, songZoom, zoomChange)
+            SongLyrics(song, modifier, songZoom, songZoomChange)
         else
-            SongChords(chord, tonalitySelected, modifier, chordZoom, zoomChange)
+            SongChords(chord, tonalitySelected, modifier, chordZoom, chordZoomChange)
     }
 }
 
@@ -561,8 +531,9 @@ private fun SongBottomBar(
     tonalitySelected: MusicNote?,
     tonalityDefault: MusicNote,
     tonalityChange: (MusicNote?) -> Unit,
-    zoomReset: (() -> Unit)?,
-    expandedSet: (Boolean) -> Unit,
+    zoom: Int,
+    zoomChange: (Int) -> Unit,
+    expandedChange: (Boolean) -> Unit,
 ) {
     BottomAppBar(containerColor = Color.Transparent) {
         Spacer(modifier = Modifier.size(8.dp))
@@ -611,9 +582,9 @@ private fun SongBottomBar(
         Spacer(modifier = Modifier.size(8.dp))
         Spacer(modifier = Modifier.weight(1F))
         PainterIconButton(
-            text = stringResource(R.string.full_screen_enable_text),
+            text = stringResource(R.string.full_screen_text),
             icon = painterResource(R.drawable.baseline_fullscreen_24),
-            action = { expandedSet(true) },
+            action = { expandedChange(true) },
         )
         Box {
             var expanded by remember { mutableStateOf(false) }
@@ -647,10 +618,10 @@ private fun SongBottomBar(
                     text = { Text(stringResource(R.string.font_size_reset_text)) },
                     onClick = {
                         expanded = false
-                        if (zoomReset != null)
-                            zoomReset()
+                        if (zoom != 0)
+                            zoomChange(0)
                     },
-                    enabled = zoomReset != null,
+                    enabled = zoom != 0,
                 )
             }
         }
@@ -755,11 +726,11 @@ private fun SongLyricsPreview() {
             tonalitySelected = null,
             tonalityChange = {},
             songZoom = 0,
+            songZoomChange = {},
             chordZoom = 0,
-            zoomReset = {},
-            zoomChange = {},
+            chordZoomChange = {},
             expanded = false,
-            expandedSet = {},
+            expandedChange = {},
         )
     }
 }

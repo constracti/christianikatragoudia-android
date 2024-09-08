@@ -21,8 +21,7 @@
     <string name="tonality_none_text">(μόνο στίχοι)</string>
     <string name="tonality_default_text">(προεπιλογή)</string>
     <string name="font_size_reset_text">Επαναφορά μεγέθους γραμματοσειράς</string>
-    <string name="full_screen_enable_text">Ενεργοποίηση προβολής πλήρους οθόνης</string>
-    <string name="full_screen_disable_text">Απενεργοποίηση προβολής πλήρους οθόνης</string>
+    <string name="full_screen_text">Προβολή πλήρους οθόνης</string>
     <string name="open_link">Άνοιγμα συνδέσμου</string>
     <string name="send_link">Κοινοποίηση συνδέσμου</string>
     <string name="search">Αναζήτηση</string>
@@ -117,8 +116,8 @@
     </string-array>
     <string-array name="version_1_4">
         <item>Εμφάνιση συντελεστών τραγουδιού</item>
-        <item>Προβολή πλήρους οθόνης</item>
         <item>Ορισμός μεγέθους γραμματοσειράς με χειρονομία πολλαπλής επαφής</item>
+        <item>Προβολή πλήρους οθόνης</item>
     </string-array>
     <string name="starred">Αγαπημένα</string>
     <string name="recent">Πρόσφατα</string>
