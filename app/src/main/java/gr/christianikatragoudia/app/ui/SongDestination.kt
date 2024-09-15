@@ -9,9 +9,12 @@ import android.text.style.StyleSpan
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -74,7 +77,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,13 +89,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.Chord
-import gr.christianikatragoudia.app.data.DateTimeConverter
 import gr.christianikatragoudia.app.data.Song
 import gr.christianikatragoudia.app.music.MusicInterval
 import gr.christianikatragoudia.app.music.MusicNote
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.TheAnalytics
-import gr.christianikatragoudia.app.ui.theme.ChristianikaTragoudiaTheme
 import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.math.pow
@@ -132,25 +132,25 @@ object SongDestination : NavDestination {
             val hiddenTonalities by viewModel.hiddenTonalities.collectAsState(
                 initial = MusicNote.ENHARMONIC_TONALITIES,
             )
+            val tonalityControl = TonalityControl(
+                selected = chordMeta.tonality,
+                list = MusicNote.TONALITIES.filter {
+                    !hiddenTonalities.contains(it)
+                }.toMutableList<MusicNote?>().also {
+                    it.add(0, null)
+                },
+                default = chord.tonality,
+                change = {
+                    viewModel.setTonality(it)
+                },
+            )
             TheScaffold(
                 song = song,
                 chord = chord,
                 navigateBack = navigateBack,
                 starred = songMeta.starred,
-                starredToggle = if (songMeta.starred) ({
-                    viewModel.setStarred(false)
-                }) else ({
-                    viewModel.setStarred(true)
-                }),
-                tonalityList = MusicNote.TONALITIES.filter {
-                    !hiddenTonalities.contains(it)
-                }.toMutableList<MusicNote?>().also {
-                    it.add(0, null)
-                },
-                tonalitySelected = chordMeta.tonality,
-                tonalityChange = {
-                    viewModel.setTonality(it)
-                },
+                starredChange = { viewModel.setStarred(it) },
+                tonalityControl = tonalityControl,
                 songZoom = songMeta.zoom,
                 songZoomChange = { viewModel.setSongZoom(it) },
                 chordZoom = chordMeta.zoom,
@@ -162,17 +162,14 @@ object SongDestination : NavDestination {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TheScaffold(
     song: Song,
     chord: Chord,
     navigateBack: () -> Unit,
     starred: Boolean,
-    starredToggle: () -> Unit,
-    tonalityList: List<MusicNote?>,
-    tonalitySelected: MusicNote?,
-    tonalityChange: (MusicNote?) -> Unit,
+    starredChange: (Boolean) -> Unit,
+    tonalityControl: TonalityControl,
     songZoom: Int,
     songZoomChange: (Int) -> Unit,
     chordZoom: Int,
@@ -180,6 +177,10 @@ private fun TheScaffold(
     expanded: Boolean,
     expandedChange: (Boolean) -> Unit,
 ) {
+    val starAction = PainterAction.getStarAction(starred = starred, starredChange = starredChange)
+    val infoAction = VectorAction.getInfoAction(song = song)
+    val openAction = VectorAction.getOpenAction(song = song)
+    val shareAction = VectorAction.getShareAction(song = song)
     BackHandler(enabled = expanded) {
         expandedChange(false)
     }
@@ -188,21 +189,20 @@ private fun TheScaffold(
             if (!expanded) {
                 SongTopBar(
                     song = song,
-                    starred = starred,
-                    onStarredToggle = starredToggle,
                     navigateBack = navigateBack,
+                    starAction = starAction,
+                    infoAction = infoAction,
+                    openAction = openAction,
+                    shareAction = shareAction,
                 )
             }
         },
         bottomBar = {
             if (!expanded) {
                 SongBottomBar(
-                    tonalityList = tonalityList,
-                    tonalitySelected = tonalitySelected,
-                    tonalityDefault = chord.tonality,
-                    tonalityChange = tonalityChange,
-                    zoom = if (tonalitySelected == null) songZoom else chordZoom,
-                    zoomChange = if (tonalitySelected == null) songZoomChange else chordZoomChange,
+                    tonalityControl = tonalityControl,
+                    zoom = if (tonalityControl.selected == null) songZoom else chordZoom,
+                    zoomChange = if (tonalityControl.selected == null) songZoomChange else chordZoomChange,
                     expandedChange = expandedChange,
                 )
             }
@@ -210,23 +210,42 @@ private fun TheScaffold(
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
     ) {
-        val modifier = Modifier
-            .padding(it)
-            .fillMaxSize()
-            .clipToBounds()
-        if (tonalitySelected == null)
-            SongLyrics(song, modifier, songZoom, songZoomChange)
-        else
-            SongChords(chord, tonalitySelected, modifier, chordZoom, chordZoomChange)
+        val actions = listOf(starAction, infoAction, openAction, shareAction)
+        val modifier = Modifier.padding(it).fillMaxSize().clipToBounds()
+        if (tonalityControl.selected == null) {
+            SongLyrics(
+                song = song,
+                modifier = modifier,
+                size = songZoom,
+                sizeChange = songZoomChange,
+                expanded = expanded,
+                actions = actions,
+                tonalityControl = tonalityControl,
+            )
+        } else {
+            SongChords(
+                chord = chord,
+                tonality = tonalityControl.selected,
+                modifier = modifier,
+                size = chordZoom,
+                sizeChange = chordZoomChange,
+                expanded = expanded,
+                actions = actions,
+                tonalityControl = tonalityControl,
+            )
+        }
     }
 }
 
 @Composable
 private fun SongLyrics(
     song: Song,
-    modifier: Modifier = Modifier,
-    size: Int = 0,
-    sizeChange: (Int) -> Unit = {},
+    modifier: Modifier,
+    size: Int,
+    sizeChange: (Int) -> Unit,
+    expanded: Boolean,
+    actions: List<Action>,
+    tonalityControl: TonalityControl,
 ) {
     var zoom by remember { mutableFloatStateOf(2f.pow(size / 10f)) }
     if (abs(10f * log2(zoom) - size) > .5f)
@@ -245,7 +264,7 @@ private fun SongLyrics(
         val maxPan = 0f
         pan = clamp(pan + panDiff.y, minPan, maxPan)
     }
-    Box(
+    Row(
         modifier = modifier
             .transformable(state = state)
             .onSizeChanged { outerHeight = it.height },
@@ -255,6 +274,7 @@ private fun SongLyrics(
                 .wrapContentHeight(align = Alignment.Top, unbounded = true)
                 .graphicsLayer(translationY = pan)
                 .onSizeChanged { innerHeight = it.height }
+                .weight(1f)
                 .padding(8.dp),
         ) {
             song.content.split("<hr />").forEachIndexed { index, s ->
@@ -280,6 +300,11 @@ private fun SongLyrics(
                 )
             }
         }
+        SongSidebar(
+            actions = actions,
+            tonalityControl = tonalityControl,
+            visible = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && expanded,
+        )
     }
 }
 
@@ -290,6 +315,9 @@ private fun SongChords(
     modifier: Modifier = Modifier,
     size: Int = 0,
     sizeChange: (Int) -> Unit = {},
+    expanded: Boolean,
+    actions: List<Action>,
+    tonalityControl: TonalityControl,
 ) {
     var zoom by remember { mutableFloatStateOf(2f.pow(size / 10f)) }
     if (abs(10f * log2(zoom) - size) > .5f)
@@ -313,7 +341,7 @@ private fun SongChords(
             y = clamp(pan.y + panDiff.y, minPanY, maxPanY),
         )
     }
-    Box(
+    Row(
         modifier = modifier
             .transformable(state = state)
             .onSizeChanged { outerSize = it },
@@ -340,12 +368,36 @@ private fun SongChords(
                 .wrapContentSize(align = Alignment.TopStart, unbounded = true)
                 .graphicsLayer(translationX = pan.x, translationY = pan.y)
                 .onSizeChanged { innerSize = it }
+                .weight(1f)
                 .padding(8.dp)
             ,
             fontFamily = FontFamily.Monospace,
             fontSize = 16.sp * zoom,
             lineHeight = 24.sp * zoom,
         )
+        SongSidebar(
+            actions = actions,
+            tonalityControl = tonalityControl,
+            visible = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && expanded,
+        )
+    }
+}
+
+@Composable
+private fun SongSidebar(actions: List<Action>, tonalityControl: TonalityControl, visible: Boolean) {
+    if (visible) {
+        Column(
+            modifier = Modifier.fillMaxHeight().padding(8.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.End,
+        ) {
+            Row {
+                actions.forEach { action ->
+                    action.AsIconButton()
+                }
+            }
+            tonalityControl.DropdownMenu()
+        }
     }
 }
 
@@ -353,9 +405,11 @@ private fun SongChords(
 @Composable
 private fun SongTopBar(
     song: Song,
-    starred: Boolean,
-    onStarredToggle: () -> Unit,
     navigateBack: () -> Unit,
+    starAction: Action,
+    infoAction: Action,
+    openAction: Action,
+    shareAction: Action,
 ) {
     TopAppBar(
         title = {
@@ -375,69 +429,30 @@ private fun SongTopBar(
         },
         actions = {
             val configuration = LocalConfiguration.current
-            val context = LocalContext.current
-            var infoVisible by remember { mutableStateOf(false) }
-            val infoText = stringResource(R.string.information)
-            val infoIcon = Icons.Default.Info
-            val infoAction = {
-                infoVisible = true
-            }
-            val openText = stringResource(R.string.open_link)
-            val openIcon = Icons.AutoMirrored.Default.ExitToApp
-            val openAction = {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.permalink))
-                context.startActivity(intent)
-            }
-            val shareText = stringResource(R.string.send_link)
-            val shareIcon = Icons.Default.Share
-            val shareAction = {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, song.title)
-                    putExtra(Intent.EXTRA_TEXT, song.permalink)
-                }
-                context.startActivity(Intent.createChooser(intent, shareText))
-                TheAnalytics.logShare("url", song.permalink)
-            }
-            StarredIconButton(starred, onStarredToggle)
-            when (configuration.orientation) {
-                Configuration.ORIENTATION_LANDSCAPE -> {
-                    VectorIconButton(text = infoText, icon = infoIcon, action = infoAction)
-                    VectorIconButton(text = openText, icon = openIcon, action = openAction)
-                    VectorIconButton(text = shareText, icon = shareIcon, action = shareAction)
-                }
-                else -> {
-                    Box {
-                        var expanded by remember { mutableStateOf(false) }
-                        val collapse = { expanded = false }
-                        IconButton(onClick = { expanded = !expanded }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.more),
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = collapse,
-                        ) {
-                            MyDropdownMenuItem(infoText, infoIcon, infoAction, collapse)
-                            MyDropdownMenuItem(openText, openIcon, openAction, collapse)
-                            MyDropdownMenuItem(shareText, shareIcon, shareAction, collapse)
-                        }
+            starAction.AsIconButton()
+            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    infoAction.AsIconButton()
+                    openAction.AsIconButton()
+                    shareAction.AsIconButton()
+            } else {
+                Box {
+                    var expanded by remember { mutableStateOf(false) }
+                    val collapse = { expanded = false }
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.more),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = collapse,
+                    ) {
+                        infoAction.AsDropdownMenuItem(collapse)
+                        openAction.AsDropdownMenuItem(collapse)
+                        shareAction.AsDropdownMenuItem(collapse)
                     }
                 }
-            }
-            if (infoVisible) {
-                AlertDialog(
-                    onDismissRequest = { infoVisible = false },
-                    confirmButton = {
-                        TextButton(onClick = { infoVisible = false }) {
-                            Text(text = stringResource(R.string.close))
-                        }
-                    },
-                    title = { Text(text = song.title, modifier = Modifier.fillMaxWidth()) },
-                    text = { Text(text = song.excerpt) },
-                )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -447,145 +462,171 @@ private fun SongTopBar(
     )
 }
 
-@Composable
-private fun StarredIconButton(
-    starred: Boolean,
-    onStarredToggle: () -> Unit,
-) {
-    if (starred) {
-        PainterIconButton(
-            text = stringResource(R.string.starred_remove),
-            icon = painterResource(R.drawable.baseline_star_24),
-            action = onStarredToggle,
-        )
-    } else {
-        PainterIconButton(
-            text = stringResource(R.string.starred_add),
-            icon = painterResource(R.drawable.baseline_star_outline_24),
-            action = onStarredToggle,
-        )
-    }
+private interface Action {
+
+    @Composable
+    fun AsIconButton()
+
+    @Composable
+    fun AsDropdownMenuItem(collapse: () -> Unit)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun VectorIconButton(
-    text: String,
-    icon: ImageVector,
-    action: () -> Unit,
-) {
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
-        state = rememberTooltipState(),
-    ) {
-        IconButton(onClick = action) {
-            Icon(imageVector = icon, contentDescription = text)
+private data class VectorAction(val text: String, val vector: ImageVector, val action: () -> Unit) : Action {
+
+    companion object {
+
+        @Composable
+        fun getInfoAction(song: Song): VectorAction {
+            val text = stringResource(R.string.information)
+            val icon = Icons.Default.Info
+            var visible by remember { mutableStateOf(false) }
+            if (visible) {
+                AlertDialog(
+                    onDismissRequest = { visible = false },
+                    confirmButton = {
+                        TextButton(onClick = { visible = false }) {
+                            Text(text = stringResource(R.string.close))
+                        }
+                    },
+                    title = { Text(text = song.title, modifier = Modifier.fillMaxWidth()) },
+                    text = { Text(text = song.excerpt) },
+                )
+            }
+            return VectorAction(text, icon) {
+                visible = true
+            }
+        }
+
+        @Composable
+        fun getOpenAction(song: Song): VectorAction {
+            val context = LocalContext.current
+            val text = stringResource(R.string.open_link)
+            val icon = Icons.AutoMirrored.Default.ExitToApp
+            return VectorAction(text, icon) {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.permalink))
+                context.startActivity(intent)
+            }
+        }
+
+        @Composable
+        fun getShareAction(song: Song): VectorAction {
+            val context = LocalContext.current
+            val text = stringResource(R.string.send_link)
+            val icon = Icons.Default.Share
+            return VectorAction(text, icon) {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, song.title)
+                    putExtra(Intent.EXTRA_TEXT, song.permalink)
+                }
+                context.startActivity(Intent.createChooser(intent, text))
+                TheAnalytics.logShare("url", song.permalink)
+            }
         }
     }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PainterIconButton(
-    text: String,
-    icon: Painter,
-    action: () -> Unit,
-    enabled: Boolean = true,
-) {
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
-        state = rememberTooltipState(),
-    ) {
-        IconButton(onClick = action, enabled = enabled) {
-            Icon(painter = icon, contentDescription = text)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun AsIconButton() {
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
+            state = rememberTooltipState(),
+        ) {
+            IconButton(onClick = action) {
+                Icon(imageVector = vector, contentDescription = text)
+            }
         }
+    }
+
+    @Composable
+    override fun AsDropdownMenuItem(collapse: () -> Unit) {
+        DropdownMenuItem(
+            text = {
+                Text(text = text)
+            },
+            onClick = {
+                collapse()
+                action()
+            },
+            leadingIcon = {
+                Icon(imageVector = vector, contentDescription = null)
+            },
+        )
     }
 }
 
-@Composable
-private fun MyDropdownMenuItem(
-    text: String,
-    icon: ImageVector,
-    action: () -> Unit,
-    collapse: () -> Unit,
-) {
-    DropdownMenuItem(
-        text = {
-            Text(text = text)
-        },
-        onClick = {
-            collapse()
-            action()
-        },
-        leadingIcon = {
-            Icon(imageVector = icon, contentDescription = null)
-        },
-    )
+private data class PainterAction(val text: String, val icon: Painter, val action: () -> Unit) : Action {
+
+    companion object {
+
+        @Composable
+        fun getStarAction(starred: Boolean, starredChange: (Boolean) -> Unit): PainterAction {
+            return if (starred) {
+                val text = stringResource(R.string.starred_remove)
+                val icon = painterResource(R.drawable.baseline_star_24)
+                PainterAction(text, icon) {
+                    starredChange(false)
+                }
+            } else {
+                val text = stringResource(R.string.starred_add)
+                val icon = painterResource(R.drawable.baseline_star_outline_24)
+                PainterAction(text, icon) {
+                    starredChange(true)
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun AsIconButton() {
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
+            state = rememberTooltipState(),
+        ) {
+            IconButton(onClick = action) {
+                Icon(painter = icon, contentDescription = text)
+            }
+        }
+    }
+
+    @Composable
+    override fun AsDropdownMenuItem(collapse: () -> Unit) {
+        DropdownMenuItem(
+            text = {
+                Text(text = text)
+            },
+            onClick = {
+                collapse()
+                action()
+            },
+            leadingIcon = {
+                Icon(painter = icon, contentDescription = null)
+            },
+        )
+    }
 }
 
 @Composable
 private fun SongBottomBar(
-    tonalityList: List<MusicNote?>,
-    tonalitySelected: MusicNote?,
-    tonalityDefault: MusicNote,
-    tonalityChange: (MusicNote?) -> Unit,
+    tonalityControl: TonalityControl,
     zoom: Int,
     zoomChange: (Int) -> Unit,
     expandedChange: (Boolean) -> Unit,
 ) {
     BottomAppBar(containerColor = Color.Transparent) {
         Spacer(modifier = Modifier.size(8.dp))
-        Box {
-            var expanded by remember { mutableStateOf(false) }
-            FilterChip(
-                selected = tonalitySelected != null,
-                onClick = { expanded = !expanded },
-                label = {
-                    val label = stringResource(R.string.tonality_label)
-                    val chord = MusicNote.toNotationOrNull(tonalitySelected)
-                    Text(text = if (chord != null) "$label: $chord" else label)
-                },
-            )
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                tonalityList.forEach {
-                    val lyricsNotation = stringResource(MusicNote.NOTATION_LYRICS)
-                    DropdownMenuItem(
-                        text = {
-                            val tonalityNotation = MusicNote.toNotationOrNull(it)
-                            val defaultLabel = stringResource(R.string.tonality_default_text)
-                            val text = if (tonalityNotation == null)
-                                lyricsNotation
-                            else if (it == tonalityDefault)
-                                "$tonalityNotation $defaultLabel"
-                            else
-                                tonalityNotation
-                            Text(text = text)
-                        },
-                        onClick = {
-                            expanded = false
-                            tonalityChange(it)
-                        },
-                        trailingIcon = {
-                            if (it == tonalitySelected) {
-                                Icon(imageVector = Icons.Default.Check, contentDescription = null)
-                            }
-                        }
-                    )
-                }
-            }
-        }
+        tonalityControl.DropdownMenu()
         Spacer(modifier = Modifier.size(8.dp))
         Spacer(modifier = Modifier.weight(1F))
-        PainterIconButton(
-            text = stringResource(R.string.full_screen_text),
-            icon = painterResource(R.drawable.baseline_fullscreen_24),
-            action = { expandedChange(true) },
-        )
+        PainterAction(
+            stringResource(R.string.full_screen_text),
+            painterResource(R.drawable.baseline_fullscreen_24),
+        ) {
+            expandedChange(true)
+        }.AsIconButton()
         Box {
             var expanded by remember { mutableStateOf(false) }
             IconButton(onClick = { expanded = !expanded }) {
@@ -602,17 +643,17 @@ private fun SongBottomBar(
                     text = { Text(stringResource(R.string.tonality_hide_text)) },
                     onClick = {
                         expanded = false
-                        tonalityChange(null)
+                        tonalityControl.change(null)
                     },
-                    enabled = tonalitySelected != null,
+                    enabled = tonalityControl.selected != null,
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.tonality_reset_text)) },
                     onClick = {
                         expanded = false
-                        tonalityChange(tonalityDefault)
+                        tonalityControl.change(tonalityControl.default)
                     },
-                    enabled = tonalitySelected != tonalityDefault,
+                    enabled = tonalityControl.selected != tonalityControl.default,
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.font_size_reset_text)) },
@@ -628,109 +669,56 @@ private fun SongBottomBar(
     }
 }
 
-private val thavorSong = Song(
-    id = 1,
-    date = DateTimeConverter.byStr("2022-01-10 00:00:00"),
-    content = "Θ' ανεβούμε μαζί στο βουνό,\n" +
-            "στο βουνό το ψηλό, το μεγάλο.\n" +
-            "Μπρoς εσύ, πίσω εγώ κι αρχινώ\n" +
-            "της αυγής το τραγούδι να ψάλλω.\n" +
-            "\n" +
-            "<i>Μπρος εσύ, πίσω εγώ και γοργοί\n" +
-            "στου Θαβώρ τις κορφές θ' ανεβούμε\n" +
-            "και μακριά απ' την πολύβουη γη\n" +
-            "άλλων κόσμων το φως θα χαρούμε.</i>\n" +
-            "\n" +
-            "Πόσο λάμπει η θεϊκιά σου μορφή,\n" +
-            "πώς αστράφτει ο λευκός σου χιτώνας.\n" +
-            "Τρεις σκηνές να στηθούν στην κορφή\n" +
-            "κι ας τη δέρνει ο βοριάς κι ο χειμώνας.\n" +
-            "\n" +
-            "<i>Μπρος εσύ, πίσω εγώ και γοργοί…</i>",
-    title = "Θαβώρ",
-    excerpt = "Θ' ανεβούμε μαζί στο βουνό",
-    modified = DateTimeConverter.byStr("2022-01-10 00:00:00"),
-    permalink = "https://christianikatragoudia.gr/songs/thavor-tha-anevoume-mazi/",
-)
+private data class TonalityControl(
+    val list: List<MusicNote?>,
+    val selected: MusicNote?,
+    val default: MusicNote,
+    val change: (MusicNote?) -> Unit,
+) {
 
-private val thavorChord = Chord(
-    id = 4957,
-    date = DateTimeConverter.byStr("2022-01-10 00:00:00"),
-    modified = DateTimeConverter.byStr("2022-01-10 00:00:00"),
-    parent = 1,
-    content = "Gm    EbΔ7  Gm    EbΔ7  \n" +
-            "\n" +
-            "      Gm                Dm\n" +
-            "Θ' ανεβούμε μαζί στο βουνό,\n" +
-            "       Eb               Bb\n" +
-            "στο βουνό το ψηλό, το μεγάλο.\n" +
-            "       Gm                  Cm\n" +
-            "Μπρoς εσύ, πίσω εγώ κι αρχινώ\n" +
-            "                Gm       D Gm\n" +
-            "της αυγής το τραγούδι να ψάλλω.\n" +
-            "\n" +
-            "G  D  \n" +
-            "\n" +
-            "       G                  Bm\n" +
-            "Μπρος εσύ, πίσω εγώ και γοργοί\n" +
-            "       C                    G\n" +
-            "στου Θαβώρ τις κορφές θ' ανεβούμε\n" +
-            "      C              D      G\n" +
-            "και μακριά απ' την πολύβουη γη\n" +
-            "      Em        C        D  G   D\n" +
-            "άλλων κόσμων το φως θα χαρούμε.\n" +
-            "\n" +
-            "Gm    EbΔ7  Gm    EbΔ7  \n" +
-            "\n" +
-            "     Gm                    Dm\n" +
-            "Πόσο λάμπει η θεϊκιά σου μορφή,\n" +
-            "     Eb                      Bb\n" +
-            "πώς αστράφτει ο λευκός σου χιτώνας.\n" +
-            "         Gm                    Cm\n" +
-            "Τρεις σκηνές να στηθούν στην κορφή\n" +
-            "                    Gm           D Gm\n" +
-            "κι ας τη δέρνει ο βοριάς κι ο χειμώνας.\n" +
-            "\n" +
-            "G  D  \n" +
-            "\n" +
-            "       G                  Bm\n" +
-            "Μπρος εσύ, πίσω εγώ και γοργοί\n" +
-            "       C                    G\n" +
-            "στου Θαβώρ τις κορφές θ' ανεβούμε\n" +
-            "      C              D      G\n" +
-            "και μακριά απ' την πολύβουη γη\n" +
-            "      Em        C        D  G\n" +
-            "άλλων κόσμων το φως θα χαρούμε,\n" +
-            "      C              D      G\n" +
-            "και μακριά απ' την πολύβουη γη\n" +
-            "      Em        C        D  G   D\n" +
-            "άλλων κόσμων το φως θα χαρούμε.",
-    tonality = MusicNote.byNotation("G")!!,
-)
-
-@Preview
-@Composable
-private fun SongLyricsPreview() {
-    ChristianikaTragoudiaTheme {
-        TheScaffold(
-            song = thavorSong,
-            chord = thavorChord,
-            navigateBack = {},
-            starred = false,
-            starredToggle = {},
-            tonalityList = MusicNote.TONALITIES.filter {
-                !MusicNote.ENHARMONIC_TONALITIES.contains(it)
-            }.toMutableList<MusicNote?>().also {
-                it.add(0, null)
-            },
-            tonalitySelected = null,
-            tonalityChange = {},
-            songZoom = 0,
-            songZoomChange = {},
-            chordZoom = 0,
-            chordZoomChange = {},
-            expanded = false,
-            expandedChange = {},
-        )
+    @Composable
+    fun DropdownMenu() {
+        Box {
+            var expanded by remember { mutableStateOf(false) }
+            FilterChip(
+                selected = selected != null,
+                onClick = { expanded = !expanded },
+                label = {
+                    val label = stringResource(R.string.tonality_label)
+                    val chord = MusicNote.toNotationOrNull(selected)
+                    Text(text = if (chord != null) "$label: $chord" else label)
+                },
+            )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                list.forEach {
+                    val lyricsNotation = stringResource(MusicNote.NOTATION_LYRICS)
+                    DropdownMenuItem(
+                        text = {
+                            val tonalityNotation = MusicNote.toNotationOrNull(it)
+                            val defaultLabel = stringResource(R.string.tonality_default_text)
+                            val text = if (tonalityNotation == null)
+                                lyricsNotation
+                            else if (it == default)
+                                "$tonalityNotation $defaultLabel"
+                            else
+                                tonalityNotation
+                            Text(text = text)
+                        },
+                        onClick = {
+                            expanded = false
+                            change(it)
+                        },
+                        trailingIcon = {
+                            if (it == selected) {
+                                Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 }
