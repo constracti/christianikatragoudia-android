@@ -7,6 +7,7 @@ import android.net.Uri
 import android.text.Html
 import android.text.style.StyleSpan
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.panBy
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,6 +96,7 @@ import gr.christianikatragoudia.app.music.MusicInterval
 import gr.christianikatragoudia.app.music.MusicNote
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.TheAnalytics
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.math.pow
@@ -211,7 +214,9 @@ private fun TheScaffold(
         containerColor = Color.Transparent,
     ) {
         val actions = listOf(starAction, infoAction, openAction, shareAction)
-        val modifier = Modifier.padding(it).fillMaxSize().clipToBounds()
+        val modifier = Modifier
+            .padding(it)
+            .fillMaxSize()
         if (tonalityControl.selected == null) {
             SongLyrics(
                 song = song,
@@ -264,40 +269,49 @@ private fun SongLyrics(
         val maxPan = 0f
         pan = clamp(pan + panDiff.y, minPan, maxPan)
     }
-    Row(
-        modifier = modifier
-            .transformable(state = state)
-            .onSizeChanged { outerHeight = it.height },
-    ) {
-        Column(
+    val scope = rememberCoroutineScope()
+    Row(modifier = modifier.transformable(state = state)) {
+        Box(
             modifier = Modifier
-                .wrapContentHeight(align = Alignment.Top, unbounded = true)
-                .graphicsLayer(translationY = pan)
-                .onSizeChanged { innerHeight = it.height }
-                .weight(1f)
-                .padding(8.dp),
-        ) {
-            song.content.split("<hr />").forEachIndexed { index, s ->
-                val source = s.replace("\n", "<br>")
-                val spanned = Html.fromHtml(source, 0)
-                val builder = AnnotatedString.Builder(spanned.toString())
-                val spanArray = spanned.getSpans(0, spanned.length, StyleSpan::class.java)
-                spanArray.forEach {
-                    when (it.style) {
-                        Typeface.ITALIC -> builder.addStyle(
-                            style = SpanStyle(fontStyle = FontStyle.Italic),
-                            start = spanned.getSpanStart(it),
-                            end = spanned.getSpanEnd(it),
-                        )
-                    }
+                .clipToBounds()
+                .fillMaxHeight()
+                .onSizeChanged {
+                    outerHeight = it.height
+                    scope.launch { state.panBy(Offset.Zero) }
                 }
-                if (index > 0)
-                    HorizontalDivider()
-                Text(
-                    text = builder.toAnnotatedString(),
-                    fontSize = 16.sp * zoom,
-                    lineHeight = 24.sp * zoom,
-                )
+                .weight(1f)
+            ,
+        ) {
+            Column(
+                modifier = Modifier
+                    .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                    .graphicsLayer(translationY = pan)
+                    .onSizeChanged { innerHeight = it.height }
+                    .padding(8.dp)
+                ,
+            ) {
+                song.content.split("<hr />").forEachIndexed { index, s ->
+                    val source = s.replace("\n", "<br>")
+                    val spanned = Html.fromHtml(source, 0)
+                    val builder = AnnotatedString.Builder(spanned.toString())
+                    val spanArray = spanned.getSpans(0, spanned.length, StyleSpan::class.java)
+                    spanArray.forEach {
+                        when (it.style) {
+                            Typeface.ITALIC -> builder.addStyle(
+                                style = SpanStyle(fontStyle = FontStyle.Italic),
+                                start = spanned.getSpanStart(it),
+                                end = spanned.getSpanEnd(it),
+                            )
+                        }
+                    }
+                    if (index > 0)
+                        HorizontalDivider()
+                    Text(
+                        text = builder.toAnnotatedString(),
+                        fontSize = 16.sp * zoom,
+                        lineHeight = 24.sp * zoom,
+                    )
+                }
             }
         }
         SongSidebar(
@@ -341,40 +355,48 @@ private fun SongChords(
             y = clamp(pan.y + panDiff.y, minPanY, maxPanY),
         )
     }
-    Row(
-        modifier = modifier
-            .transformable(state = state)
-            .onSizeChanged { outerSize = it },
-    ) {
-        val interval = MusicInterval.getByNotes(chord.tonality, tonality)
-        val text = buildAnnotatedString {
-            chord.content.lines().forEachIndexed { index, s ->
-                if (index > 0)
-                    append("\n")
-                val isChordLine = s.isNotEmpty() &&
-                        s.filter { char -> char.isWhitespace() }.length * 1F / s.length >= .5F
-                if (isChordLine) {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(interval.transposeLine(s))
+    val scope = rememberCoroutineScope()
+    Row(modifier = modifier.transformable(state = state)) {
+        Box(
+            modifier = Modifier
+                .clipToBounds()
+                .fillMaxHeight()
+                .onSizeChanged {
+                    outerSize = it
+                    scope.launch { state.panBy(Offset.Zero) }
+                }
+                .weight(1f)
+            ,
+        ) {
+            val interval = MusicInterval.getByNotes(chord.tonality, tonality)
+            val text = buildAnnotatedString {
+                chord.content.lines().forEachIndexed { index, s ->
+                    if (index > 0)
+                        append("\n")
+                    val isChordLine = s.isNotEmpty() &&
+                            s.filter { char -> char.isWhitespace() }.length * 1F / s.length >= .5F
+                    if (isChordLine) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(interval.transposeLine(s))
+                        }
+                    } else {
+                        append(s)
                     }
-                } else {
-                    append(s)
                 }
             }
+            Text(
+                text = text,
+                modifier = Modifier
+                    .wrapContentSize(align = Alignment.TopStart, unbounded = true)
+                    .graphicsLayer(translationX = pan.x, translationY = pan.y)
+                    .onSizeChanged { innerSize = it }
+                    .padding(8.dp)
+                ,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 16.sp * zoom,
+                lineHeight = 24.sp * zoom,
+            )
         }
-        Text(
-            text,
-            modifier = Modifier
-                .wrapContentSize(align = Alignment.TopStart, unbounded = true)
-                .graphicsLayer(translationX = pan.x, translationY = pan.y)
-                .onSizeChanged { innerSize = it }
-                .weight(1f)
-                .padding(8.dp)
-            ,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 16.sp * zoom,
-            lineHeight = 24.sp * zoom,
-        )
         SongSidebar(
             actions = actions,
             tonalityControl = tonalityControl,
