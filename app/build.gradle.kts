@@ -1,10 +1,11 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.application)
+    alias(libs.plugins.kotlin.android)
 
-    // Add the Google services Gradle plugin
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.room)
+
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -51,53 +52,47 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // https://developer.android.com/jetpack/androidx/releases/room#gradle-plugin
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
 }
 
 dependencies {
 
     //implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2024.08.00"))
+    implementation(platform(libs.compose.bom))
     //implementation("androidx.compose.foundation:foundation-layout-android:1.6.8")
-    implementation("androidx.compose.material3:material3")
+    implementation(libs.compose.material3)
     //implementation("androidx.compose.ui:ui")
     //implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation(libs.compose.ui.tooling.preview)
     //implementation("androidx.core:core-ktx:1.13.1")
     //implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     //implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    //testImplementation("junit:junit:4.13.2")
-    //androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    //androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    //androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
-    //androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    //debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // https://developer.android.com/jetpack/androidx/releases/datastore#preferences-datastore-dependencies
+    implementation(libs.datastore.preferences)
 
-    // Moshi
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+    // https://developer.android.com/jetpack/androidx/releases/navigation#declaring_dependencies
+    implementation(libs.navigation.compose)
 
-    // Retrofit with Moshi Converter
-    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    // https://developer.android.com/jetpack/androidx/releases/room#declaring_dependencies
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
 
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    // To use Kotlin annotation processing tool (kapt)
-    //kapt("androidx.room:room-compiler:$roomVersion")
-    // To use Kotlin Symbol Processing (KSP)
-    ksp("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
+    // https://developer.android.com/jetpack/androidx/releases/work#declaring_dependencies
+    implementation(libs.work.runtime.ktx)
 
-    // WorkManager dependency
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    // https://firebase.google.com/docs/android/setup#add-sdks
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 
-    // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    // https://github.com/square/moshi/blob/master/README.md
+    implementation(libs.moshi.kotlin)
 
-    // Add the dependency for the Analytics library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation("com.google.firebase:firebase-analytics")
+    // https://github.com/square/retrofit/blob/trunk/retrofit-converters/moshi/README.md
+    implementation(libs.converter.moshi)
 }

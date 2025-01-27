@@ -1,5 +1,6 @@
 package gr.christianikatragoudia.app.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -22,7 +23,7 @@ data class Chord(
     @PrimaryKey val id: Int,
     val date: LocalDateTime,
     val modified: LocalDateTime,
-    val parent: Int,
+    @ColumnInfo(index = true) val parent: Int,
     val content: String,
     val tonality: MusicNote,
 )
