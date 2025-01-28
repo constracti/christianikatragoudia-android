@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e583cb257f9801ce89a516ef1209fd9f",
+    "identityHash": "604da5f01f42f5a10804803abeefd9c2",
     "entities": [
       {
         "tableName": "song",
@@ -107,17 +107,7 @@
             "id"
           ]
         },
-        "indices": [
-          {
-            "name": "index_chord_parent",
-            "unique": false,
-            "columnNames": [
-              "parent"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_chord_parent` ON `${TABLE_NAME}` (`parent`)"
-          }
-        ],
+        "indices": [],
         "foreignKeys": [
           {
             "table": "song",
@@ -230,7 +220,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e583cb257f9801ce89a516ef1209fd9f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '604da5f01f42f5a10804803abeefd9c2')"
     ]
   }
 }
