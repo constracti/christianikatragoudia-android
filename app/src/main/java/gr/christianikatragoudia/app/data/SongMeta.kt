@@ -21,7 +21,7 @@ import java.time.ZonedDateTime
 )
 data class SongMeta(
     @PrimaryKey val id: Int,
-    val zoom: Int = 0,
+    val zoom: Float = 1f,
     val starred: Boolean = false,
     val visited: LocalDateTime? = null,
 ) {

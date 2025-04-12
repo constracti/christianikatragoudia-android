@@ -7,10 +7,9 @@ import android.net.Uri
 import android.text.Html
 import android.text.style.StyleSpan
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.gestures.panBy
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,20 +50,20 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -82,7 +81,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -96,11 +94,7 @@ import gr.christianikatragoudia.app.music.MusicInterval
 import gr.christianikatragoudia.app.music.MusicNote
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.TheAnalytics
-import kotlinx.coroutines.launch
-import kotlin.math.abs
-import kotlin.math.log2
 import kotlin.math.pow
-import kotlin.math.roundToInt
 
 object SongDestination : NavDestination {
 
@@ -143,153 +137,254 @@ object SongDestination : NavDestination {
                     it.add(0, null)
                 },
                 default = chord.tonality,
-                change = {
-                    viewModel.setTonality(it)
-                },
+                change = { viewModel.setTonality(it) },
             )
-            TheScaffold(
-                song = song,
-                chord = chord,
-                navigateBack = navigateBack,
+            val immerse = uiState.immerse
+            val immerseChange: (Boolean) -> Unit = { viewModel.setImmerse(it) }
+            val starAction = PainterAction.getStarAction(
                 starred = songMeta.starred,
                 starredChange = { viewModel.setStarred(it) },
-                tonalityControl = tonalityControl,
-                songZoom = songMeta.zoom,
-                songZoomChange = { viewModel.setSongZoom(it) },
-                chordZoom = chordMeta.zoom,
-                chordZoomChange = { viewModel.setChordZoom(it) },
-                expanded = uiState.expanded,
-                expandedChange = { viewModel.setExpanded(it) },
             )
-        }
-    }
-}
-
-@Composable
-private fun TheScaffold(
-    song: Song,
-    chord: Chord,
-    navigateBack: () -> Unit,
-    starred: Boolean,
-    starredChange: (Boolean) -> Unit,
-    tonalityControl: TonalityControl,
-    songZoom: Int,
-    songZoomChange: (Int) -> Unit,
-    chordZoom: Int,
-    chordZoomChange: (Int) -> Unit,
-    expanded: Boolean,
-    expandedChange: (Boolean) -> Unit,
-) {
-    val starAction = PainterAction.getStarAction(starred = starred, starredChange = starredChange)
-    val infoAction = VectorAction.getInfoAction(song = song)
-    val openAction = VectorAction.getOpenAction(song = song)
-    val shareAction = VectorAction.getShareAction(song = song)
-    BackHandler(enabled = expanded) {
-        expandedChange(false)
-    }
-    Scaffold(
-        topBar = {
-            if (!expanded) {
-                SongTopBar(
-                    song = song,
-                    navigateBack = navigateBack,
-                    starAction = starAction,
-                    infoAction = infoAction,
-                    openAction = openAction,
-                    shareAction = shareAction,
-                )
+            val infoAction = VectorAction.getInfoAction(song = song)
+            val openAction = VectorAction.getOpenAction(song = song)
+            val shareAction = VectorAction.getShareAction(song = song)
+            val topActionList = listOf(starAction, infoAction, openAction, shareAction)
+            BackHandler(enabled = immerse) {
+                immerseChange(false)
             }
-        },
-        bottomBar = {
-            if (!expanded) {
-                SongBottomBar(
-                    tonalityControl = tonalityControl,
-                    zoom = if (tonalityControl.selected == null) songZoom else chordZoom,
-                    zoomChange = if (tonalityControl.selected == null) songZoomChange else chordZoomChange,
-                    expandedChange = expandedChange,
+            if (tonalityControl.selected == null) {
+                val zoom = songMeta.zoom
+                var pan by remember { mutableStateOf(Offset.Zero) }
+                var outerSize by remember { mutableStateOf(IntSize.Zero) }
+                var innerSize by remember { mutableStateOf(IntSize.Zero) }
+                val focusControl = FocusControl(
+                    zoom = zoom,
+                    pan = pan,
+                    outerSize = outerSize,
+                    innerSize = innerSize,
+                    innerScale = false,
+                    zoomChange = { viewModel.setSongZoom(it) },
+                    panChange = { pan = it },
                 )
-            }
-        },
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        containerColor = Color.Transparent,
-    ) {
-        val actions = listOf(starAction, infoAction, openAction, shareAction)
-        val modifier = Modifier
-            .padding(it)
-            .fillMaxSize()
-        if (tonalityControl.selected == null) {
-            SongLyrics(
-                song = song,
-                modifier = modifier,
-                size = songZoom,
-                sizeChange = songZoomChange,
-                expanded = expanded,
-                actions = actions,
-                tonalityControl = tonalityControl,
-            )
-        } else {
-            SongChords(
-                chord = chord,
-                tonality = tonalityControl.selected,
-                modifier = modifier,
-                size = chordZoom,
-                sizeChange = chordZoomChange,
-                expanded = expanded,
-                actions = actions,
-                tonalityControl = tonalityControl,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SongLyrics(
-    song: Song,
-    modifier: Modifier,
-    size: Int,
-    sizeChange: (Int) -> Unit,
-    expanded: Boolean,
-    actions: List<Action>,
-    tonalityControl: TonalityControl,
-) {
-    var zoom by remember { mutableFloatStateOf(2f.pow(size / 10f)) }
-    if (abs(10f * log2(zoom) - size) > .5f)
-        zoom = 2f.pow(size / 10f)
-    var pan by remember { mutableFloatStateOf(0f) }
-    var outerHeight by remember { mutableIntStateOf(0) }
-    var innerHeight by remember { mutableIntStateOf(0) }
-    val state = rememberTransformableState { zoomDiff, panDiff, _ ->
-        val minZoom = 2f.pow(-2)
-        val maxZoom = 2f.pow(+2)
-        zoom = clamp(zoom * zoomDiff, minZoom, maxZoom)
-        val newSize = (10f * log2(zoom)).roundToInt()
-        if (newSize != size)
-            sizeChange(newSize)
-        val minPan = minOf((outerHeight - innerHeight), 0).toFloat()
-        val maxPan = 0f
-        pan = clamp(pan + panDiff.y, minPan, maxPan)
-    }
-    val scope = rememberCoroutineScope()
-    Row(modifier = modifier.transformable(state = state)) {
-        Box(
-            modifier = Modifier
-                .clipToBounds()
-                .fillMaxHeight()
-                .onSizeChanged {
-                    outerHeight = it.height
-                    scope.launch { state.panBy(Offset.Zero) }
+                Scaffold(
+                    topBar = {
+                        TheTopBar(
+                            song = song,
+                            starAction = starAction,
+                            infoAction = infoAction,
+                            openAction = openAction,
+                            shareAction = shareAction,
+                            navigateBack = navigateBack,
+                            visible = !immerse,
+                        )
+                    },
+                    bottomBar = {
+                        TheBottomBar(
+                            tonalityControl = tonalityControl,
+                            focusControl = focusControl,
+                            immerseChange = immerseChange,
+                            visible = !immerse,
+                        )
+                    },
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    containerColor = Color.Transparent,
+                ) { paddingValues ->
+                    Row(
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .fillMaxSize()
+                            .transformable(rememberTransformableState { gestureZoom, gesturePan, _ ->
+                                focusControl.change(
+                                    newZoom = zoom * gestureZoom,
+                                    newPan = pan + gesturePan,
+                                )
+                            })
+                    ) {
+                        SongBox(
+                            song = song,
+                            boxModifier = Modifier
+                                .clipToBounds()
+                                .fillMaxHeight()
+                                .onSizeChanged { outerSize = it; focusControl.change() }
+                                .weight(1f)
+                            ,
+                            textModifier = Modifier
+                                .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                                .graphicsLayer(translationY = pan.y)
+                                .onSizeChanged { innerSize = it; focusControl.change() }
+                                .padding(8.dp)
+                            ,
+                            zoom = zoom,
+                        )
+                        TheSideBar(
+                            topActionList = topActionList,
+                            tonalityControl = tonalityControl,
+                            focusControl = focusControl,
+                            immerseChange = immerseChange,
+                            visible = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && immerse,
+                        )
+                    }
                 }
-                .weight(1f)
-            ,
-        ) {
-            Column(
-                modifier = Modifier
-                    .wrapContentHeight(align = Alignment.Top, unbounded = true)
-                    .graphicsLayer(translationY = pan)
-                    .onSizeChanged { innerHeight = it.height }
-                    .padding(8.dp)
-                ,
-            ) {
+            } else {
+                val zoom by rememberUpdatedState(chordMeta.zoom)
+                var pan by remember { mutableStateOf(Offset.Zero) }
+                var outerSize by remember { mutableStateOf(IntSize.Zero) }
+                var innerSize by remember { mutableStateOf(IntSize.Zero) }
+                val focusControl = FocusControl(
+                    zoom = zoom,
+                    pan = pan,
+                    outerSize = outerSize,
+                    innerSize = innerSize,
+                    innerScale = true,
+                    zoomChange = { viewModel.setChordZoom(it) },
+                    panChange = { pan = it },
+                )
+                Scaffold(
+                    topBar = {
+                        TheTopBar(
+                            song = song,
+                            starAction = starAction,
+                            infoAction = infoAction,
+                            openAction = openAction,
+                            shareAction = shareAction,
+                            navigateBack = navigateBack,
+                            visible = !immerse,
+                        )
+                    },
+                    bottomBar = {
+                        TheBottomBar(
+                            tonalityControl = tonalityControl,
+                            focusControl = focusControl,
+                            immerseChange = immerseChange,
+                            visible = !immerse,
+                        )
+                    },
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    containerColor = Color.Transparent,
+                ) { paddingValues ->
+                    Row(
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTransformGestures { centroid, gesturePan, gestureZoom, _ ->
+                                    val newZoom = FocusControl.limitZoom(zoom * gestureZoom)
+                                    val effZoom = newZoom / zoom
+                                    focusControl.change(
+                                        newZoom = newZoom,
+                                        newPan = (pan - centroid) * effZoom + centroid + gesturePan,
+                                    )
+                                }
+                            },
+                    ) {
+                        ChordBox(
+                            chord = chord,
+                            tonality = tonalityControl.selected,
+                            boxModifier = Modifier
+                                .clipToBounds()
+                                .fillMaxHeight()
+                                .onSizeChanged { outerSize = it; focusControl.change() }
+                                .weight(1f)
+                            ,
+                            textModifier = Modifier
+                                .wrapContentSize(align = Alignment.TopStart, unbounded = true)
+                                .graphicsLayer {
+                                    translationX = pan.x
+                                    translationY = pan.y
+                                    scaleX = zoom
+                                    scaleY = zoom
+                                    transformOrigin = TransformOrigin(0f, 0f)
+                                }
+                                .onSizeChanged { innerSize = it; focusControl.change() }
+                                .padding(8.dp)
+                            ,
+                        )
+                        TheSideBar(
+                            topActionList = topActionList,
+                            tonalityControl = tonalityControl,
+                            focusControl = focusControl,
+                            immerseChange = immerseChange,
+                            visible = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && immerse,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun TheTopBar(
+        song: Song,
+        starAction: Action,
+        infoAction: Action,
+        openAction: Action,
+        shareAction: Action,
+        navigateBack: () -> Unit,
+        visible: Boolean,
+    ) {
+        if (visible) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = song.title,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 2,
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = navigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back_button),
+                        )
+                    }
+                },
+                actions = {
+                    val configuration = LocalConfiguration.current
+                    starAction.AsIconButton()
+                    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        infoAction.AsIconButton()
+                        openAction.AsIconButton()
+                        shareAction.AsIconButton()
+                    } else {
+                        Box {
+                            var expanded by remember { mutableStateOf(false) }
+                            val collapse = { expanded = false }
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = stringResource(R.string.more),
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = collapse,
+                            ) {
+                                infoAction.AsDropdownMenuItem(collapse)
+                                openAction.AsDropdownMenuItem(collapse)
+                                shareAction.AsDropdownMenuItem(collapse)
+                            }
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent,
+                ),
+            )
+        }
+    }
+
+    @Composable
+    private fun SongBox(
+        song: Song,
+        boxModifier: Modifier,
+        textModifier: Modifier,
+        zoom: Float,
+    ) {
+        Box(modifier = boxModifier) {
+            Column(modifier = textModifier) {
                 song.content.split("<hr />").forEachIndexed { index, s ->
                     val source = s.replace("\n", "<br>")
                     val spanned = Html.fromHtml(source, 0)
@@ -314,60 +409,16 @@ private fun SongLyrics(
                 }
             }
         }
-        SongSidebar(
-            actions = actions,
-            tonalityControl = tonalityControl,
-            visible = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && expanded,
-        )
     }
-}
 
-@Composable
-private fun SongChords(
-    chord: Chord,
-    tonality: MusicNote,
-    modifier: Modifier = Modifier,
-    size: Int = 0,
-    sizeChange: (Int) -> Unit = {},
-    expanded: Boolean,
-    actions: List<Action>,
-    tonalityControl: TonalityControl,
-) {
-    var zoom by remember { mutableFloatStateOf(2f.pow(size / 10f)) }
-    if (abs(10f * log2(zoom) - size) > .5f)
-        zoom = 2f.pow(size / 10f)
-    var pan by remember { mutableStateOf(Offset.Zero) }
-    var outerSize by remember { mutableStateOf(IntSize.Zero) }
-    var innerSize by remember { mutableStateOf(IntSize.Zero) }
-    val state = rememberTransformableState { zoomDiff, panDiff, _ ->
-        val minZoom = 2f.pow(-2)
-        val maxZoom = 2f.pow(+2)
-        zoom = clamp(zoom * zoomDiff, minZoom, maxZoom)
-        val newSize = (10f * log2(zoom)).roundToInt()
-        if (newSize != size)
-            sizeChange(newSize)
-        val minPanX = minOf(outerSize.width - innerSize.width, 0).toFloat()
-        val minPanY = minOf(outerSize.height - innerSize.height, 0).toFloat()
-        val maxPanX = 0f
-        val maxPanY = 0f
-        pan = Offset(
-            x = clamp(pan.x + panDiff.x, minPanX, maxPanX),
-            y = clamp(pan.y + panDiff.y, minPanY, maxPanY),
-        )
-    }
-    val scope = rememberCoroutineScope()
-    Row(modifier = modifier.transformable(state = state)) {
-        Box(
-            modifier = Modifier
-                .clipToBounds()
-                .fillMaxHeight()
-                .onSizeChanged {
-                    outerSize = it
-                    scope.launch { state.panBy(Offset.Zero) }
-                }
-                .weight(1f)
-            ,
-        ) {
+    @Composable
+    private fun ChordBox(
+        chord: Chord,
+        tonality: MusicNote,
+        boxModifier: Modifier,
+        textModifier: Modifier,
+    ) {
+        Box(modifier = boxModifier) {
             val interval = MusicInterval.getByNotes(chord.tonality, tonality)
             val text = buildAnnotatedString {
                 chord.content.lines().forEachIndexed { index, s ->
@@ -386,80 +437,38 @@ private fun SongChords(
             }
             Text(
                 text = text,
-                modifier = Modifier
-                    .wrapContentSize(align = Alignment.TopStart, unbounded = true)
-                    .graphicsLayer(translationX = pan.x, translationY = pan.y)
-                    .onSizeChanged { innerSize = it }
-                    .padding(8.dp)
-                ,
+                modifier = textModifier,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 16.sp * zoom,
-                lineHeight = 24.sp * zoom,
+                fontSize = 16.sp,
+                lineHeight = 24.sp,
             )
         }
-        SongSidebar(
-            actions = actions,
-            tonalityControl = tonalityControl,
-            visible = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE && expanded,
-        )
     }
-}
 
-@Composable
-private fun SongSidebar(actions: List<Action>, tonalityControl: TonalityControl, visible: Boolean) {
-    if (visible) {
-        Column(
-            modifier = Modifier.fillMaxHeight().padding(8.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.End,
-        ) {
-            Row {
-                actions.forEach { action ->
-                    action.AsIconButton()
-                }
-            }
-            tonalityControl.DropdownMenu()
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SongTopBar(
-    song: Song,
-    navigateBack: () -> Unit,
-    starAction: Action,
-    infoAction: Action,
-    openAction: Action,
-    shareAction: Action,
-) {
-    TopAppBar(
-        title = {
-            Text(
-                text = song.title,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 2,
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = navigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = stringResource(R.string.back_button),
-                )
-            }
-        },
-        actions = {
-            val configuration = LocalConfiguration.current
-            starAction.AsIconButton()
-            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    infoAction.AsIconButton()
-                    openAction.AsIconButton()
-                    shareAction.AsIconButton()
-            } else {
+    @Composable
+    private fun TheBottomBar(
+        tonalityControl: TonalityControl,
+        focusControl: FocusControl,
+        immerseChange: (Boolean) -> Unit,
+        visible: Boolean,
+    ) {
+        if (visible) {
+            BottomAppBar(containerColor = Color.Transparent) {
+                Spacer(modifier = Modifier.size(8.dp))
+                tonalityControl.DropdownMenu()
+                Spacer(modifier = Modifier.size(8.dp))
+                Spacer(modifier = Modifier.weight(1F))
+                focusControl.ZoomIconButtonList()
+                PainterAction(
+                    stringResource(R.string.full_screen_text),
+                    painterResource(R.drawable.baseline_fullscreen_24),
+                    true,
+                ) {
+                    immerseChange(true)
+                }.AsIconButton()
                 Box {
                     var expanded by remember { mutableStateOf(false) }
-                    val collapse = { expanded = false }
+                    val collapse: () -> Unit = { expanded = false }
                     IconButton(onClick = { expanded = !expanded }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -470,18 +479,62 @@ private fun SongTopBar(
                         expanded = expanded,
                         onDismissRequest = collapse,
                     ) {
-                        infoAction.AsDropdownMenuItem(collapse)
-                        openAction.AsDropdownMenuItem(collapse)
-                        shareAction.AsDropdownMenuItem(collapse)
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.tonality_hide_text)) },
+                            onClick = {
+                                collapse()
+                                tonalityControl.change(null)
+                            },
+                            enabled = tonalityControl.selected != null,
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.tonality_reset_text)) },
+                            onClick = {
+                                collapse()
+                                tonalityControl.change(tonalityControl.default)
+                            },
+                            enabled = tonalityControl.selected != tonalityControl.default,
+                        )
+                        focusControl.ResetZoomDropdownMenuItem(collapse)
                     }
                 }
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
-            scrolledContainerColor = Color.Transparent,
-        ),
-    )
+        }
+    }
+
+    @Composable
+    private fun TheSideBar(
+        topActionList: List<Action>,
+        tonalityControl: TonalityControl,
+        focusControl: FocusControl,
+        immerseChange: (Boolean) -> Unit,
+        visible: Boolean,
+    ) {
+        if (visible) {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                Row {
+                    topActionList.forEach { it.AsIconButton() }
+                }
+                Spacer(modifier = Modifier.weight(1F))
+                tonalityControl.DropdownMenu()
+                Row {
+                    focusControl.ZoomIconButtonList()
+                    PainterAction(
+                        stringResource(R.string.full_screen_exit_text),
+                        painterResource(R.drawable.baseline_fullscreen_exit_24),
+                        true,
+                    ) {
+                        immerseChange(false)
+                    }.AsIconButton()
+                }
+            }
+        }
+    }
 }
 
 private interface Action {
@@ -493,7 +546,12 @@ private interface Action {
     fun AsDropdownMenuItem(collapse: () -> Unit)
 }
 
-private data class VectorAction(val text: String, val vector: ImageVector, val action: () -> Unit) : Action {
+private data class VectorAction(
+    private val text: String,
+    private val vector: ImageVector,
+    private val enabled: Boolean,
+    private val action: () -> Unit,
+) : Action {
 
     companion object {
 
@@ -514,7 +572,7 @@ private data class VectorAction(val text: String, val vector: ImageVector, val a
                     text = { Text(text = song.excerpt) },
                 )
             }
-            return VectorAction(text, icon) {
+            return VectorAction(text, icon, true) {
                 visible = true
             }
         }
@@ -524,7 +582,7 @@ private data class VectorAction(val text: String, val vector: ImageVector, val a
             val context = LocalContext.current
             val text = stringResource(R.string.open_link)
             val icon = Icons.AutoMirrored.Default.ExitToApp
-            return VectorAction(text, icon) {
+            return VectorAction(text, icon, true) {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.permalink))
                 context.startActivity(intent)
             }
@@ -535,7 +593,7 @@ private data class VectorAction(val text: String, val vector: ImageVector, val a
             val context = LocalContext.current
             val text = stringResource(R.string.send_link)
             val icon = Icons.Default.Share
-            return VectorAction(text, icon) {
+            return VectorAction(text, icon, true) {
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_SUBJECT, song.title)
@@ -555,7 +613,7 @@ private data class VectorAction(val text: String, val vector: ImageVector, val a
             tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
             state = rememberTooltipState(),
         ) {
-            IconButton(onClick = action) {
+            IconButton(onClick = action, enabled = enabled) {
                 Icon(imageVector = vector, contentDescription = text)
             }
         }
@@ -574,11 +632,17 @@ private data class VectorAction(val text: String, val vector: ImageVector, val a
             leadingIcon = {
                 Icon(imageVector = vector, contentDescription = null)
             },
+            enabled = enabled,
         )
     }
 }
 
-private data class PainterAction(val text: String, val icon: Painter, val action: () -> Unit) : Action {
+private data class PainterAction(
+    private val text: String,
+    private val icon: Painter,
+    private val enabled: Boolean,
+    private val action: () -> Unit,
+) : Action {
 
     companion object {
 
@@ -587,13 +651,13 @@ private data class PainterAction(val text: String, val icon: Painter, val action
             return if (starred) {
                 val text = stringResource(R.string.starred_remove)
                 val icon = painterResource(R.drawable.baseline_star_24)
-                PainterAction(text, icon) {
+                PainterAction(text, icon, true) {
                     starredChange(false)
                 }
             } else {
                 val text = stringResource(R.string.starred_add)
                 val icon = painterResource(R.drawable.baseline_star_outline_24)
-                PainterAction(text, icon) {
+                PainterAction(text, icon, true) {
                     starredChange(true)
                 }
             }
@@ -608,7 +672,7 @@ private data class PainterAction(val text: String, val icon: Painter, val action
             tooltip = { PlainTooltip { Text(text = text, textAlign = TextAlign.Center) } },
             state = rememberTooltipState(),
         ) {
-            IconButton(onClick = action) {
+            IconButton(onClick = action, enabled = enabled) {
                 Icon(painter = icon, contentDescription = text)
             }
         }
@@ -627,67 +691,8 @@ private data class PainterAction(val text: String, val icon: Painter, val action
             leadingIcon = {
                 Icon(painter = icon, contentDescription = null)
             },
+            enabled = enabled,
         )
-    }
-}
-
-@Composable
-private fun SongBottomBar(
-    tonalityControl: TonalityControl,
-    zoom: Int,
-    zoomChange: (Int) -> Unit,
-    expandedChange: (Boolean) -> Unit,
-) {
-    BottomAppBar(containerColor = Color.Transparent) {
-        Spacer(modifier = Modifier.size(8.dp))
-        tonalityControl.DropdownMenu()
-        Spacer(modifier = Modifier.size(8.dp))
-        Spacer(modifier = Modifier.weight(1F))
-        PainterAction(
-            stringResource(R.string.full_screen_text),
-            painterResource(R.drawable.baseline_fullscreen_24),
-        ) {
-            expandedChange(true)
-        }.AsIconButton()
-        Box {
-            var expanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { expanded = !expanded }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.more),
-                )
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.tonality_hide_text)) },
-                    onClick = {
-                        expanded = false
-                        tonalityControl.change(null)
-                    },
-                    enabled = tonalityControl.selected != null,
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.tonality_reset_text)) },
-                    onClick = {
-                        expanded = false
-                        tonalityControl.change(tonalityControl.default)
-                    },
-                    enabled = tonalityControl.selected != tonalityControl.default,
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.font_size_reset_text)) },
-                    onClick = {
-                        expanded = false
-                        if (zoom != 0)
-                            zoomChange(0)
-                    },
-                    enabled = zoom != 0,
-                )
-            }
-        }
     }
 }
 
@@ -742,5 +747,95 @@ private data class TonalityControl(
                 }
             }
         }
+    }
+}
+
+private class FocusControl(
+    private val zoom: Float,
+    private val pan: Offset,
+    private val outerSize: IntSize,
+    private val innerSize: IntSize,
+    private val innerScale: Boolean,
+    private val zoomChange: (Float) -> Unit,
+    private val panChange: (Offset) -> Unit,
+) {
+
+    companion object {
+
+        val ZOOM_MIN = 2f.pow(-2)
+        val ZOOM_MAX = 2f.pow(+2)
+        val ZOOM_STEP = 2f.pow(0.1f)
+        const val ZOOM_INIT = 1f
+
+        fun limitZoom(zoom: Float): Float {
+            return zoom.coerceIn(ZOOM_MIN, ZOOM_MAX)
+        }
+    }
+
+    private fun decreaseZoomEnabled(): Boolean {
+        return zoom > ZOOM_MIN
+    }
+
+    private fun increaseZoomEnabled(): Boolean {
+        return zoom < ZOOM_MAX
+    }
+
+    private fun resetZoomEnabled(): Boolean {
+        return zoom != ZOOM_INIT
+    }
+
+    private fun decreaseZoom() {
+        change(zoom / ZOOM_STEP)
+    }
+
+    private fun increaseZoom() {
+        change(zoom * ZOOM_STEP)
+    }
+
+    private fun resetZoom() {
+        change(ZOOM_INIT)
+    }
+
+    @Composable
+    fun ZoomIconButtonList() {
+        PainterAction(
+            stringResource(R.string.font_size_decrease_text),
+            painterResource(R.drawable.baseline_text_decrease_24),
+            decreaseZoomEnabled(),
+        ) {
+            decreaseZoom()
+        }.AsIconButton()
+        PainterAction(
+            stringResource(R.string.font_size_increase_text),
+            painterResource(R.drawable.baseline_text_increase_24),
+            increaseZoomEnabled(),
+        ) {
+            increaseZoom()
+        }.AsIconButton()
+    }
+
+    @Composable
+    fun ResetZoomDropdownMenuItem(collapse: () -> Unit) {
+        DropdownMenuItem(
+            text = {
+                Text(text = stringResource(R.string.font_size_reset_text))
+            },
+            onClick = {
+                collapse()
+                resetZoom()
+            },
+            enabled = resetZoomEnabled(),
+        )
+    }
+
+    fun change(newZoom: Float? = null, newPan: Offset? = null) {
+        val effZoom = limitZoom(newZoom ?: zoom)
+        val outerOffset = outerSize.toOffset()
+        val innerOffset = innerSize.toOffset() * (if (innerScale) effZoom else 1f)
+        val minPan = (outerOffset - innerOffset).coerceAtMost(Offset.Zero)
+        val maxPan = Offset.Zero
+        val effPan = (newPan ?: pan).coerceIn(minPan, maxPan)
+        zoomChange(effZoom)
+        panChange(effPan)
     }
 }

@@ -40,7 +40,7 @@ class SongViewModel(
         val chordMeta: ChordMeta? = null,
         val loading: Boolean = true,
         val passed: Boolean = false,
-        val expanded: Boolean = false,
+        val immerse: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -105,7 +105,7 @@ class SongViewModel(
         }
     }
 
-    fun setSongZoom(zoom: Int) {
+    fun setSongZoom(zoom: Float) {
         val songMeta = _uiState.value.songMeta?.copy(zoom = zoom) ?: return
         _uiState.update {
             it.copy(songMeta = songMeta)
@@ -115,7 +115,7 @@ class SongViewModel(
         }
     }
 
-    fun setChordZoom(zoom: Int) {
+    fun setChordZoom(zoom: Float) {
         val chordMeta = _uiState.value.chordMeta?.copy(zoom = zoom) ?: return
         _uiState.update {
             it.copy(chordMeta = chordMeta)
@@ -125,9 +125,9 @@ class SongViewModel(
         }
     }
 
-    fun setExpanded(expanded: Boolean) {
+    fun setImmerse(immerse: Boolean) {
         _uiState.update {
-            it.copy(expanded = expanded)
+            it.copy(immerse = immerse)
         }
     }
 }

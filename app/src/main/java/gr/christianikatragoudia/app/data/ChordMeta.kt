@@ -20,5 +20,5 @@ import gr.christianikatragoudia.app.music.MusicNote
 data class ChordMeta(
     @PrimaryKey val id: Int,
     val tonality: MusicNote? = null,
-    val zoom: Int = 0,
+    val zoom: Float = 1f,
 )

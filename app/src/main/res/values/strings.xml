@@ -20,8 +20,11 @@
     <string name="tonality_reset_text">Επιλογή αρχικής τονικότητας</string>
     <string name="tonality_none_text">(μόνο στίχοι)</string>
     <string name="tonality_default_text">(προεπιλογή)</string>
+    <string name="font_size_decrease_text">Μείωση μεγέθους γραμματοσειράς</string>
+    <string name="font_size_increase_text">Αύξηση μεγέθους γραμματοσειράς</string>
     <string name="font_size_reset_text">Επαναφορά μεγέθους γραμματοσειράς</string>
     <string name="full_screen_text">Προβολή πλήρους οθόνης</string>
+    <string name="full_screen_exit_text">Ακύρωση προβολής πλήρους οθόνης</string>
     <string name="open_link">Άνοιγμα συνδέσμου</string>
     <string name="send_link">Κοινοποίηση συνδέσμου</string>
     <string name="search">Αναζήτηση</string>

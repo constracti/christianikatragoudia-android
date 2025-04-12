@@ -23,7 +23,7 @@ data class Chord(
     @PrimaryKey val id: Int,
     val date: LocalDateTime,
     val modified: LocalDateTime,
-    val parent: Int,
+    @ColumnInfo(index = true) val parent: Int,
     val content: String,
     val tonality: MusicNote,
 )
