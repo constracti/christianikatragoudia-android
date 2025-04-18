@@ -9,7 +9,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import gr.christianikatragoudia.app.music.MusicNoteTypeConverter
 
-val MIGRATION_1_2 = object : Migration(1, 2) {
+private val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // chord parent index
         db.execSQL("CREATE INDEX `index_chord_parent` ON `chord` (`parent`)")
@@ -88,7 +88,7 @@ abstract class TheDatabase : RoomDatabase() {
                     "db_main",
                 ).addMigrations(
                     MIGRATION_1_2,
-                ).fallbackToDestructiveMigration().build().also {
+                ).fallbackToDestructiveMigration(true).build().also {
                     Instance = it
                 }
             }

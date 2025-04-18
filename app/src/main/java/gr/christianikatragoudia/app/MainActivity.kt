@@ -2,10 +2,14 @@ package gr.christianikatragoudia.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,6 +41,22 @@ class MainActivity : ComponentActivity() {
                 ThemeOption.LIGHT -> false
                 ThemeOption.DARK -> true
             }
+            enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.auto(
+                    lightScrim = Color.Transparent.toArgb(),
+                    darkScrim = Color.Transparent.toArgb(),
+                    detectDarkMode = {
+                        useDarkTheme
+                    },
+                ),
+                navigationBarStyle = SystemBarStyle.auto(
+                    lightScrim = Color.Transparent.toArgb(),
+                    darkScrim = Color.Transparent.toArgb(),
+                    detectDarkMode = {
+                        useDarkTheme
+                    }
+                )
+            )
             ChristianikaTragoudiaTheme(useDarkTheme = useDarkTheme) {
                 TheNavHost()
             }

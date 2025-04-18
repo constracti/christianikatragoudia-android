@@ -34,7 +34,7 @@ object VersionsDestination : NavDestination {
 
     override val route = "versions"
 
-    private const val analyticsClass = "/versions/"
+    private const val ANALYTICS_CLASS = "/versions/"
     @StringRes
     private val analyticsNameRes = R.string.version_history
 
@@ -44,7 +44,7 @@ object VersionsDestination : NavDestination {
     ) {
         val analyticsName = stringResource(analyticsNameRes) + " – " + stringResource(R.string.app_name)
         LaunchedEffect(Unit) {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(ANALYTICS_CLASS, analyticsName)
         }
         TheScaffold(navigateBack = navigateBack)
     }

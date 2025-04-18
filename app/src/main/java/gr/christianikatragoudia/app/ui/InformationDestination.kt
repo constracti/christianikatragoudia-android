@@ -1,7 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
 import android.content.Intent
-import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -24,6 +23,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.BASE_URL
@@ -36,7 +36,7 @@ object InformationDestination : NavDestination {
 
     override val route = "information"
 
-    private const val analyticsClass = "/info/"
+    private const val ANALYTICS_CLASS = "/info/"
     @StringRes
     private val analyticsNameRes = R.string.information
 
@@ -46,7 +46,7 @@ object InformationDestination : NavDestination {
     ) {
         val analyticsName = stringResource(analyticsNameRes) + " – " + stringResource(R.string.app_name)
         LaunchedEffect(Unit) {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(ANALYTICS_CLASS, analyticsName)
         }
         TheScaffold(
             navigateBack = navigateBack,
@@ -71,14 +71,14 @@ private fun TheScaffold(
             ) {
                 val context = LocalContext.current
                 TextButton(onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(BASE_URL))
+                    val intent = Intent(Intent.ACTION_VIEW, BASE_URL.toUri())
                     context.startActivity(intent)
                 }) {
                     Text(text = stringResource(R.string.information_open_site))
                 }
                 TextButton(onClick = {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:")
+                        data = "mailto:".toUri()
                         putExtra(Intent.EXTRA_EMAIL, arrayOf(EMAIL_ADDRESS))
                     }
                     context.startActivity(intent)

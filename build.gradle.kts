@@ -3,6 +3,8 @@ plugins {
     // https://developer.android.com/build/releases/gradle-plugin#updating-plugin
     alias(libs.plugins.application) apply false
     alias(libs.plugins.kotlin.android) apply false
+    // https://developer.android.com/develop/ui/compose/compiler
+    alias(libs.plugins.kotlin.compose) apply false
 
     // https://developer.android.com/jetpack/androidx/releases/room#declaring_dependencies
     // https://developer.android.com/build/migrate-to-ksp#add-ksp

@@ -1,7 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
 import android.content.Intent
-import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -29,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.TheAnalytics
@@ -38,7 +38,7 @@ object LicenseDestination : NavDestination {
 
     override val route = "license"
 
-    private const val analyticsClass = "/license/"
+    private const val ANALYTICS_CLASS = "/license/"
     @StringRes
     private val analyticsNameRes = R.string.license
 
@@ -48,7 +48,7 @@ object LicenseDestination : NavDestination {
     ) {
         val analyticsName = stringResource(analyticsNameRes) + " – " + stringResource(R.string.app_name)
         LaunchedEffect(Unit) {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(ANALYTICS_CLASS, analyticsName)
         }
         TheScaffold(
             navigateBack = navigateBack,
@@ -73,7 +73,7 @@ private fun TheScaffold(
             ) {
                 val context = LocalContext.current
                 TextButton(onClick = {
-                    val uri = Uri.parse("https://creativecommons.org/licenses/by-nc-sa/4.0/deed.el")
+                    val uri = "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.el".toUri()
                     val intent = Intent(Intent.ACTION_VIEW, uri)
                     context.startActivity(intent)
                 }) {

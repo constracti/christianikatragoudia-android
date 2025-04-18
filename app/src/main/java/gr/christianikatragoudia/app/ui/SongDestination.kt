@@ -3,7 +3,6 @@ package gr.christianikatragoudia.app.ui
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Typeface
-import android.net.Uri
 import android.text.Html
 import android.text.style.StyleSpan
 import androidx.activity.compose.BackHandler
@@ -81,6 +80,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -206,14 +206,12 @@ object SongDestination : NavDestination {
                                 .clipToBounds()
                                 .fillMaxHeight()
                                 .onSizeChanged { outerSize = it; focusControl.change() }
-                                .weight(1f)
-                            ,
+                                .weight(1f),
                             textModifier = Modifier
                                 .wrapContentHeight(align = Alignment.Top, unbounded = true)
                                 .graphicsLayer(translationY = pan.y)
                                 .onSizeChanged { innerSize = it; focusControl.change() }
-                                .padding(8.dp)
-                            ,
+                                .padding(8.dp),
                             zoom = zoom,
                         )
                         TheSideBar(
@@ -284,8 +282,7 @@ object SongDestination : NavDestination {
                                 .clipToBounds()
                                 .fillMaxHeight()
                                 .onSizeChanged { outerSize = it; focusControl.change() }
-                                .weight(1f)
-                            ,
+                                .weight(1f),
                             textModifier = Modifier
                                 .wrapContentSize(align = Alignment.TopStart, unbounded = true)
                                 .graphicsLayer {
@@ -296,8 +293,7 @@ object SongDestination : NavDestination {
                                     transformOrigin = TransformOrigin(0f, 0f)
                                 }
                                 .onSizeChanged { innerSize = it; focusControl.change() }
-                                .padding(8.dp)
-                            ,
+                                .padding(8.dp),
                         )
                         TheSideBar(
                             topActionList = topActionList,
@@ -583,7 +579,7 @@ private data class VectorAction(
             val text = stringResource(R.string.open_link)
             val icon = Icons.AutoMirrored.Default.ExitToApp
             return VectorAction(text, icon, true) {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.permalink))
+                val intent = Intent(Intent.ACTION_VIEW, song.permalink.toUri())
                 context.startActivity(intent)
             }
         }
