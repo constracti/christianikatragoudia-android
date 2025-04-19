@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.SettingsRepo
+import gr.christianikatragoudia.app.data.SongFts
 import gr.christianikatragoudia.app.data.SongTitle
 import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
@@ -43,12 +44,17 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
     }
 
     fun getResultListFlow(query: String): Flow<List<SongTitle>> {
-        val q = query
-            .replace(Regex("[,'-]"), " ")
-            .replace(Regex("\\s+"), " ")
-            .trim()
-        return TheDatabase.getInstance(application).songDao().getTitlesByQuery("%$q%").map {
-            it.map { songTitle -> songTitle.simplifyExcerpt() }
+        if (query.isEmpty()) {
+            return TheDatabase.getInstance(application).songDao().getTitles().map {
+                it.map { songTitle -> songTitle.simplifyExcerpt() }
+            }
+        }
+        val fullTextQuery = SongFts.tokenize(query)
+            .split(" ").joinToString(" OR ") { "\"${it}\" OR \"${it}*\"" }
+        return TheDatabase.getInstance(application).songDao().getMatchesByQuery(fullTextQuery).map {
+            it.map { songMatch ->
+                Pair(SongTitle(songMatch), -songMatch.getScore())
+            }.sortedBy { pair -> pair.second }.map { pair -> pair.first }
         }
     }
 }

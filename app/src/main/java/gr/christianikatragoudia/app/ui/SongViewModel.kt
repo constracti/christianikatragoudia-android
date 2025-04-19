@@ -48,13 +48,13 @@ class SongViewModel(
 
     init {
         viewModelScope.launch {
-            val song = TheDatabase.getInstance(application).songDao().getById(songId)
-            val chord = TheDatabase.getInstance(application).chordDao().getByParent(songId).firstOrNull()
+            val song = TheDatabase.getInstance(application).songDao().getDataById(songId)
+            val chord = TheDatabase.getInstance(application).chordDao().getDataByParent(songId).firstOrNull()
             if (song != null && chord != null) {
                 val songMeta =
-                    (TheDatabase.getInstance(application).songMetaDao().getById(song.id) ?: SongMeta(song.id)).visit()
-                TheDatabase.getInstance(application).songMetaDao().upsert(songMeta)
-                val chordMeta = TheDatabase.getInstance(application).chordMetaDao().getById(chord.id)
+                    (TheDatabase.getInstance(application).songDao().getMetaById(song.id) ?: SongMeta(song.id)).visit()
+                TheDatabase.getInstance(application).songDao().upsert(songMeta)
+                val chordMeta = TheDatabase.getInstance(application).chordDao().getMetaById(chord.id)
                     ?: ChordMeta(chord.id)
                 _uiState.update {
                     it.copy(
@@ -85,7 +85,7 @@ class SongViewModel(
             it.copy(songMeta = songMeta)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).songMetaDao().upsert(songMeta)
+            TheDatabase.getInstance(application).songDao().upsert(songMeta)
         }
     }
 
@@ -96,7 +96,7 @@ class SongViewModel(
             it.copy(chordMeta = chordMeta)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).chordMetaDao().upsert(chordMeta)
+            TheDatabase.getInstance(application).chordDao().upsert(chordMeta)
             TheAnalytics.logScreenViewWithTonality(
                 analyticsClass(song),
                 analyticsName(song),
@@ -111,7 +111,7 @@ class SongViewModel(
             it.copy(songMeta = songMeta)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).songMetaDao().upsert(songMeta)
+            TheDatabase.getInstance(application).songDao().upsert(songMeta)
         }
     }
 
@@ -121,7 +121,7 @@ class SongViewModel(
             it.copy(chordMeta = chordMeta)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).chordMetaDao().upsert(chordMeta)
+            TheDatabase.getInstance(application).chordDao().upsert(chordMeta)
         }
     }
 

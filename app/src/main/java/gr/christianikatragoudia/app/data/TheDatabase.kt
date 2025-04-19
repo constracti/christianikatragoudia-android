@@ -1,6 +1,7 @@
 package gr.christianikatragoudia.app.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -52,14 +53,18 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
 }
 
 @Database(
-    version = 2,
+    version = 3,
     entities = [
         Song::class,
         Chord::class,
         SongMeta::class,
         ChordMeta::class,
+        SongFts::class,
     ],
     exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 2, to = 3),
+    ],
 )
 @TypeConverters(
     DateTimeConverter::class,
@@ -70,10 +75,6 @@ abstract class TheDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
 
     abstract fun chordDao(): ChordDao
-
-    abstract fun songMetaDao(): SongMetaDao
-
-    abstract fun chordMetaDao(): ChordMetaDao
 
     companion object {
 

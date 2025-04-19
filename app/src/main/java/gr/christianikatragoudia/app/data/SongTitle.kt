@@ -6,9 +6,26 @@ data class SongTitle(
     val excerpt: String,
 ) {
 
-    constructor(song: Song) : this(song.id, song.title, song.excerpt)
+    constructor(song: Song) : this(
+        id = song.id,
+        title = song.title,
+        excerpt = firstLine(song.excerpt),
+    )
+
+    constructor(songMatch: SongMatch): this(
+        id = songMatch.id,
+        title = songMatch.title,
+        excerpt = firstLine(songMatch.excerpt),
+    )
 
     fun simplifyExcerpt(): SongTitle {
-        return copy(excerpt = excerpt.split(Regex("\r\n|\r|\n")).first())
+        return copy(excerpt = firstLine(excerpt))
+    }
+
+    companion object {
+
+        private fun firstLine(excerpt: String): String {
+            return excerpt.split(Regex("\r\n|\r|\n")).first()
+        }
     }
 }

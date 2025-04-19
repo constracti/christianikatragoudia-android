@@ -38,7 +38,7 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).songMetaDao().clearRecent()
+            TheDatabase.getInstance(application).songDao().clearRecent()
             _uiState.update {
                 it.copy(processing = false)
             }
@@ -50,7 +50,7 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).chordMetaDao().resetTonality()
+            TheDatabase.getInstance(application).chordDao().resetTonality()
             _uiState.update {
                 it.copy(processing = false)
             }
@@ -62,8 +62,8 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).songMetaDao().resetZoom()
-            TheDatabase.getInstance(application).chordMetaDao().resetZoom()
+            TheDatabase.getInstance(application).songDao().resetZoom()
+            TheDatabase.getInstance(application).chordDao().resetZoom()
             _uiState.update {
                 it.copy(processing = false)
             }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.SettingsRepo
+import gr.christianikatragoudia.app.data.SongFts
 import gr.christianikatragoudia.app.data.TheDatabase
 import gr.christianikatragoudia.app.network.TheAnalytics
 import gr.christianikatragoudia.app.network.WebApp
@@ -40,14 +41,22 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val count = TheDatabase.getInstance(application).songDao().count()
+            val countData = TheDatabase.getInstance(application).songDao().countData()
+            val countFts = TheDatabase.getInstance(application).songDao().countFts()
+            if (countData > 0 && countFts == 0) {
+                val songList = TheDatabase.getInstance(application).songDao().getDataList()
+                for (song in songList) {
+                    TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                }
+                TheDatabase.getInstance(application).songDao().optimize()
+            }
             _uiState.update {
                 it.copy(
                     loading = false,
-                    passed = count > 0,
+                    passed = countData > 0,
                 )
             }
-            if (count == 0)
+            if (countData == 0)
                 TheAnalytics.logScreenView(analyticsClass, analyticsName)
         }
     }
@@ -59,11 +68,17 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
         viewModelScope.launch {
             try {
                 val patch = WebApp.retrofitService.getPatch(null, true)
-                TheDatabase.getInstance(application).songDao().insert(*patch.songList.toTypedArray())
-                TheDatabase.getInstance(application).chordDao().insert(*patch.chordList.toTypedArray())
+                for (song in patch.songList) {
+                    TheDatabase.getInstance(application).songDao().insert(song)
+                    TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                }
+                TheDatabase.getInstance(application).songDao().optimize()
+                for (chord in patch.chordList) {
+                    TheDatabase.getInstance(application).chordDao().insert(chord)
+                }
                 SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
                 SettingsRepo(application).setUpdateCheck(false)
-                val count = TheDatabase.getInstance(application).songDao().count()
+                val count = TheDatabase.getInstance(application).songDao().countData()
                 _uiState.update {
                     it.copy(
                         loading = false,

@@ -88,12 +88,15 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
+import gr.christianikatragoudia.app.coerceAtMost
+import gr.christianikatragoudia.app.coerceIn
 import gr.christianikatragoudia.app.data.Chord
 import gr.christianikatragoudia.app.data.Song
 import gr.christianikatragoudia.app.music.MusicInterval
 import gr.christianikatragoudia.app.music.MusicNote
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.network.TheAnalytics
+import gr.christianikatragoudia.app.toOffset
 import kotlin.math.pow
 
 object SongDestination : NavDestination {

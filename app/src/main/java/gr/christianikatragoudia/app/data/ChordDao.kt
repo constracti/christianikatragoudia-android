@@ -5,22 +5,35 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 
 @Dao
 interface ChordDao {
 
     @Insert
-    suspend fun insert(vararg chords: Chord)
+    suspend fun insert(chord: Chord)
 
     @Update
-    suspend fun update(vararg chords: Chord)
+    suspend fun update(chord: Chord)
+
+    @Upsert
+    suspend fun upsert(chordMeta: ChordMeta)
 
     @Delete
-    suspend fun delete(vararg chord: Chord)
+    suspend fun delete(chord: Chord)
 
     @Query("SELECT * FROM chord")
-    suspend fun getAll(): List<Chord>
+    suspend fun getDataList(): List<Chord>
 
     @Query("SELECT * FROM chord WHERE parent = :parent")
-    suspend fun getByParent(parent: Int): List<Chord>
+    suspend fun getDataByParent(parent: Int): List<Chord>
+
+    @Query("SELECT * FROM chord_meta WHERE id = :id")
+    suspend fun getMetaById(id: Int): ChordMeta?
+
+    @Query("UPDATE chord_meta SET tonality = NULL")
+    suspend fun resetTonality()
+
+    @Query("UPDATE chord_meta SET zoom = 0")
+    suspend fun resetZoom()
 }
