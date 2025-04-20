@@ -1,5 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -125,6 +126,7 @@ private fun SearchForm(
         if (!isImeVisible)
             focusManager.clearFocus()
     }
+    BackHandler(enabled = query != "") { onQueryFieldValueChange("") }
     OutlinedTextField(
         value = query,
         onValueChange = onQueryFieldValueChange,

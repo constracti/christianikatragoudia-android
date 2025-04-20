@@ -61,7 +61,6 @@ interface SongDao {
         SELECT song.id, song.title, song.excerpt
         FROM song
         JOIN chord ON chord.parent = song.id
-        JOIN song_meta ON song_meta.id = song.id
         ORDER BY song.title COLLATE UNICODE ASC, song.excerpt COLLATE UNICODE ASC, song.id ASC
         """
     )
