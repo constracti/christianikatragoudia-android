@@ -16,6 +16,6 @@ interface ChordMetaDao {
     @Query("UPDATE chord_meta SET tonality = NULL")
     suspend fun resetTonality()
 
-    @Query("UPDATE chord_meta SET zoom = 0")
+    @Query("UPDATE chord_meta SET zoom = 1")
     suspend fun resetZoom()
 }
