@@ -53,7 +53,7 @@ interface SongDao {
     @Query("UPDATE song_meta SET visited = NULL")
     suspend fun clearRecent()
 
-    @Query("UPDATE song_meta SET zoom = 0")
+    @Query("UPDATE song_meta SET zoom = 1")
     suspend fun resetZoom()
 
     @Query(
