@@ -24,7 +24,7 @@ data class SongFts (
 
         fun tokenize(string: String): String {
             val lowercase = string
-                .replace(Regex("<[^>]*>"), "")
+                .replace(Regex("<[^>]*>"), " ")
                 .lowercase()
             val normalized = Normalizer2.getNFDInstance().normalize(lowercase)
             return normalized

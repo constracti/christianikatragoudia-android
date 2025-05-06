@@ -31,7 +31,8 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)        }
+            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+        }
     }
 
     val updateCheck = SettingsRepo(application).updateCheck

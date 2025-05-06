@@ -32,7 +32,7 @@ interface SongDao {
     @Delete
     suspend fun delete(songFts: SongFts)
 
-    @Query("INSERT INTO song_fts(song_fts) VALUES('optimize')")
+    @Query("INSERT INTO song_fts(song_fts) VALUES ('optimize')")
     suspend fun optimize()
 
     @Query("SELECT * FROM song WHERE id = :id")
