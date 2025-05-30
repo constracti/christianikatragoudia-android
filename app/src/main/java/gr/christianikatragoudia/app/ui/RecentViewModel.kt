@@ -15,13 +15,12 @@ import kotlinx.coroutines.launch
 
 class RecentViewModel(application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/recent/"
-    private val analyticsName =
-        application.getString(R.string.recent) + " – " + application.getString(R.string.app_name)
-
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/recent/",
+                screenName = application.getString(R.string.recent),
+            )
         }
     }
 

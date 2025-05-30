@@ -14,13 +14,12 @@ import kotlinx.coroutines.launch
 
 class TonalitiesViewModel(private val application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/options/tonalities/"
-    private val analyticsName =
-        application.getString(R.string.tonalities) + " – " + application.getString(R.string.app_name)
-
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/options/tonalities/",
+                screenName = application.getString(R.string.tonalities),
+            )
         }
     }
 

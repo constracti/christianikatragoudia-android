@@ -18,10 +18,6 @@ import kotlinx.coroutines.launch
 
 class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/welcome/"
-    private val analyticsName =
-        application.getString(R.string.welcome) + " – " + application.getString(R.string.app_name)
-
     private val _snackbarMessage = MutableSharedFlow<String?>()
     val snackbarMessageFlow = _snackbarMessage.asSharedFlow()
 
@@ -56,8 +52,12 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
                     passed = countData > 0,
                 )
             }
-            if (countData == 0)
-                TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            if (countData == 0) {
+                TheAnalytics.logScreenView(
+                    screenClass = "/welcome/",
+                    screenName = application.getString(R.string.welcome),
+                )
+            }
         }
     }
 

@@ -11,13 +11,12 @@ import kotlinx.coroutines.launch
 
 class ThemeViewModel(private val application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/options/theme/"
-    private val analyticsName =
-        application.getString(R.string.theme) + " – " + application.getString(R.string.app_name)
-
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/options/theme/",
+                screenName = application.getString(R.string.theme),
+            )
         }
     }
 

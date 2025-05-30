@@ -2,7 +2,6 @@ package gr.christianikatragoudia.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.Chord
 import gr.christianikatragoudia.app.data.ChordMeta
@@ -22,14 +21,6 @@ class SongViewModel(
     private val songId: Int,
     private val application: TheApplication,
 ) : ViewModel() {
-
-    private fun analyticsClass(song: Song): String {
-        return song.permalink.replace(BASE_URL, "/")
-    }
-
-    private fun analyticsName(song: Song): String {
-        return song.title + " – " + application.getString(R.string.app_name)
-    }
 
     val hiddenTonalities = SettingsRepo(application).hiddenTonalities
 
@@ -66,10 +57,9 @@ class SongViewModel(
                         passed = true,
                     )
                 }
-                TheAnalytics.logScreenViewWithTonality(
-                    analyticsClass(song),
-                    analyticsName(song),
-                    MusicNote.toNotationOrElse(chordMeta.tonality, MusicNote.NOTATION_NULL),
+                TheAnalytics.logScreenView(
+                    screenClass = song.permalink.replace(BASE_URL, "/"),
+                    screenName = song.title,
                 )
             } else {
                 _uiState.update {
@@ -90,18 +80,12 @@ class SongViewModel(
     }
 
     fun setTonality(tonality: MusicNote?) {
-        val song = _uiState.value.song ?: return
         val chordMeta = _uiState.value.chordMeta?.copy(tonality = tonality) ?: return
         _uiState.update {
             it.copy(chordMeta = chordMeta)
         }
         viewModelScope.launch {
             TheDatabase.getInstance(application).chordDao().upsert(chordMeta)
-            TheAnalytics.logScreenViewWithTonality(
-                analyticsClass(song),
-                analyticsName(song),
-                MusicNote.toNotationOrElse(chordMeta.tonality, MusicNote.NOTATION_NULL),
-            )
         }
     }
 

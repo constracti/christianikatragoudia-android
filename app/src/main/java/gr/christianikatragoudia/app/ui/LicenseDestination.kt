@@ -1,7 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
 import android.content.Intent
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,17 +37,13 @@ object LicenseDestination : NavDestination {
 
     override val route = "license"
 
-    private const val ANALYTICS_CLASS = "/license/"
-    @StringRes
-    private val analyticsNameRes = R.string.license
-
     @Composable
     fun TheScreen(
         navigateBack: () -> Unit,
     ) {
-        val analyticsName = stringResource(analyticsNameRes) + " – " + stringResource(R.string.app_name)
+        val analyticsName = stringResource(R.string.license)
         LaunchedEffect(Unit) {
-            TheAnalytics.logScreenView(ANALYTICS_CLASS, analyticsName)
+            TheAnalytics.logScreenView("/license/", analyticsName)
         }
         TheScaffold(
             navigateBack = navigateBack,

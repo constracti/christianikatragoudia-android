@@ -1,7 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
 import android.content.Intent
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -36,17 +35,13 @@ object InformationDestination : NavDestination {
 
     override val route = "information"
 
-    private const val ANALYTICS_CLASS = "/info/"
-    @StringRes
-    private val analyticsNameRes = R.string.information
-
     @Composable
     fun TheScreen(
         navigateBack: () -> Unit,
     ) {
-        val analyticsName = stringResource(analyticsNameRes) + " – " + stringResource(R.string.app_name)
+        val analyticsName = stringResource(R.string.information)
         LaunchedEffect(Unit) {
-            TheAnalytics.logScreenView(ANALYTICS_CLASS, analyticsName)
+            TheAnalytics.logScreenView("/info/", analyticsName)
         }
         TheScaffold(
             navigateBack = navigateBack,

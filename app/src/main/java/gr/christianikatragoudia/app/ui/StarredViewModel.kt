@@ -15,13 +15,12 @@ import kotlinx.coroutines.launch
 
 class StarredViewModel(application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/starred/"
-    private val analyticsName =
-        application.getString(R.string.starred) + " – " + application.getString(R.string.app_name)
-
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/starred/",
+                screenName = application.getString(R.string.starred),
+            )
         }
     }
 

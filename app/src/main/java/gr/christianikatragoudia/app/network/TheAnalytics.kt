@@ -9,7 +9,6 @@ object TheAnalytics {
 
     private const val EVENT_UPDATE_CHECK = "update_check"
     private const val EVENT_UPDATE_APPLY = "update_apply"
-    private const val PARAM_TONALITY = "tonality"
 
     fun logAppOpen() {
         Firebase.analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN) {}
@@ -19,14 +18,6 @@ object TheAnalytics {
         Firebase.analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_CLASS, screenClass)
             param(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
-        }
-    }
-
-    fun logScreenViewWithTonality(screenClass: String, screenName: String, tonality: String) {
-        Firebase.analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_CLASS, screenClass)
-            param(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
-            param(PARAM_TONALITY, tonality)
         }
     }
 

@@ -1,6 +1,5 @@
 package gr.christianikatragoudia.app.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,17 +33,13 @@ object VersionsDestination : NavDestination {
 
     override val route = "versions"
 
-    private const val ANALYTICS_CLASS = "/versions/"
-    @StringRes
-    private val analyticsNameRes = R.string.version_history
-
     @Composable
     fun TheScreen(
         navigateBack: () -> Unit,
     ) {
-        val analyticsName = stringResource(analyticsNameRes) + " – " + stringResource(R.string.app_name)
+        val analyticsName = stringResource(R.string.version_history)
         LaunchedEffect(Unit) {
-            TheAnalytics.logScreenView(ANALYTICS_CLASS, analyticsName)
+            TheAnalytics.logScreenView("/versions/", analyticsName)
         }
         TheScaffold(navigateBack = navigateBack)
     }

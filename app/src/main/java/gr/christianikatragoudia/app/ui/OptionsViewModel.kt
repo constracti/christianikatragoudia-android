@@ -14,10 +14,6 @@ import kotlinx.coroutines.launch
 
 class OptionsViewModel(private val application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/options/"
-    private val analyticsName =
-        application.getString(R.string.options) + " – " + application.getString(R.string.app_name)
-
     data class UiState(
         val processing: Boolean = false,
     )
@@ -27,7 +23,10 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/options/",
+                screenName = application.getString(R.string.options),
+            )
         }
     }
 

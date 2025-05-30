@@ -20,10 +20,6 @@ import kotlinx.coroutines.launch
 
 class UpdateViewModel(private val application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/options/update/"
-    private val analyticsName =
-        application.getString(R.string.update) + " – " + application.getString(R.string.app_name)
-
     private val _snackbarMessage = MutableSharedFlow<String?>()
     val snackbarMessageFlow = _snackbarMessage.asSharedFlow()
 
@@ -44,7 +40,10 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
     init {
         checkPatch()
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/options/update/",
+                screenName = application.getString(R.string.update),
+            )
         }
     }
 

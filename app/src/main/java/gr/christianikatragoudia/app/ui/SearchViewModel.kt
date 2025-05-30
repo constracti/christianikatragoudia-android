@@ -18,10 +18,6 @@ import kotlinx.coroutines.launch
 
 class SearchViewModel(private val application: TheApplication) : ViewModel() {
 
-    private val analyticsClass = "/search/"
-    private val analyticsName =
-        application.getString(R.string.search) + " – " + application.getString(R.string.app_name)
-
     data class UiState(
         val query: String = "",
     )
@@ -31,7 +27,10 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            TheAnalytics.logScreenView(analyticsClass, analyticsName)
+            TheAnalytics.logScreenView(
+                screenClass = "/search/",
+                screenName = application.getString(R.string.search),
+            )
         }
     }
 
@@ -41,7 +40,8 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
         _uiState.update {
             it.copy(query = query)
         }
-        TheAnalytics.logSearch(query)
+        if (query.isNotEmpty())
+            TheAnalytics.logSearch(query)
     }
 
     fun getResultListFlow(query: String): Flow<List<SongTitle>> {
