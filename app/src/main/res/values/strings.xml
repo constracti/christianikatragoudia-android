@@ -114,7 +114,6 @@
     </string-array>
     <string-array name="version_1_3">
         <item>Έλεγχος ενημερώσεων από την ιστοσελίδα</item>
-        <item>Ειδοποίηση για νέο περιεχόμενο</item>
         <item>Βελτίωση αναζήτησης</item>
     </string-array>
     <string-array name="version_1_4">
