@@ -10,10 +10,10 @@ enum class Version(val tag: String, @ArrayRes val changes: Int, val date: LocalD
     V_1_2(tag = "1.2", changes = R.array.version_1_2, date = LocalDate.of(2023, 11, 16)),
     V_1_3(tag = "1.3", changes = R.array.version_1_3, date = LocalDate.of(2023, 12, 22)),
     V_1_4(tag = "1.4", changes = R.array.version_1_4, date = LocalDate.of(2025, 4, 21)),
-    V_1_5(tag = "1.5", changes = R.array.version_1_5, date = LocalDate.of(2025, 6, 8));
+    V_1_5(tag = "1.5", changes = R.array.version_1_5, date = LocalDate.of(2025, 7, 1));
 
     companion object {
 
-        const val CURRENT = "1.5.1"
+        const val CURRENT = "1.5.2"
     }
 }

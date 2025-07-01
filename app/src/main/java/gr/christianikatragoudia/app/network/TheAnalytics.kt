@@ -21,12 +21,6 @@ object TheAnalytics {
         }
     }
 
-    fun logSearch(searchTerm: String) {
-        Firebase.analytics.logEvent(FirebaseAnalytics.Event.SEARCH) {
-            param(FirebaseAnalytics.Param.SEARCH_TERM, searchTerm)
-        }
-    }
-
     fun logShare(contentType: String, itemId: String) {
         Firebase.analytics.logEvent(FirebaseAnalytics.Event.SHARE) {
             param(FirebaseAnalytics.Param.CONTENT_TYPE, contentType)

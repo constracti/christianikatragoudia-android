@@ -40,8 +40,6 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
         _uiState.update {
             it.copy(query = query)
         }
-        if (query.isNotEmpty())
-            TheAnalytics.logSearch(query)
     }
 
     fun getResultListFlow(query: String): Flow<List<SongTitle>> {
