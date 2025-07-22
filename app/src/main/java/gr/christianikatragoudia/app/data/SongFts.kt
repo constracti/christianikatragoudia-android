@@ -23,6 +23,7 @@ data class SongFts (
     companion object {
 
         fun tokenize(string: String): String {
+            // TODO replace final sigma
             val lowercase = string
                 .replace(Regex("<[^>]*>"), " ")
                 .lowercase()

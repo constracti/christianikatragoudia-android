@@ -14,6 +14,6 @@ enum class Version(val tag: String, @ArrayRes val changes: Int, val date: LocalD
 
     companion object {
 
-        const val CURRENT = "1.5.2"
+        const val CURRENT = "1.5.3"
     }
 }

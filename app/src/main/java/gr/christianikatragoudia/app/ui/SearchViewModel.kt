@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 class SearchViewModel(private val application: TheApplication) : ViewModel() {
 
@@ -48,9 +49,26 @@ class SearchViewModel(private val application: TheApplication) : ViewModel() {
                 it.map { songTitle -> songTitle.simplifyExcerpt() }
             }
         }
-        val fullTextQuery = SongFts.tokenize(query)
-            .split(" ").joinToString(" OR ") { "\"${it}\" OR \"${it}*\"" }
-        return TheDatabase.getInstance(application).songDao().getMatchesByQuery(fullTextQuery).map {
+        val tokenList = SongFts.tokenize(query).split(" ").filter { token ->
+            token.isNotEmpty()
+        }
+        val maxLength = tokenList.count()
+        val minLength = max(maxLength - 2, 1)
+        val termList = mutableListOf<String>()
+        for (length in minLength..maxLength) {
+            for (start in 0..(maxLength - length)) {
+                val stop = start + length
+                val subList = tokenList.subList(start, stop)
+                termList.add(subList.joinToString(" "))
+                termList.add(subList.joinToString(" ") { token ->
+                    "${token}*"
+                })
+            }
+        }
+        val expr = termList.joinToString(" OR ") { term ->
+            "\"${term}\""
+        }
+        return TheDatabase.getInstance(application).songDao().getMatchesByQuery(expr).map {
             it.map { songMatch ->
                 Pair(SongTitle(songMatch), -songMatch.getScore())
             }.sortedBy { pair -> pair.second }.map { pair -> pair.first }

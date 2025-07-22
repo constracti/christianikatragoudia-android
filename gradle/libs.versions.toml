@@ -1,16 +1,16 @@
 [versions]
-application = "8.9.3"
-kotlin = "2.0.21"
-compose-bom = "2025.06.00"
+application = "8.11.1"
+kotlin = "2.2.0"
+compose-bom = "2025.07.00"
 datastore = "1.1.7"
 navigation = "2.7.7" # 2.8.0 introduces type safety for destinations
-room = "2.7.1"
-work-runtime-ktx = "2.10.1"
-firebase-bom = "33.15.0"
-google-devtools-ksp = "2.0.21-1.0.27"
-google-services = "4.4.2"
-squareup-moshi = "1.15.0"
-squareup-retrofit2 = "2.9.0"
+room = "2.7.2"
+work-runtime-ktx = "2.10.2"
+firebase-bom = "34.0.0"
+google-devtools-ksp = "2.2.0-2.0.2"
+google-services = "4.4.3"
+squareup-moshi = "1.15.2"
+squareup-retrofit2 = "3.0.0"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
