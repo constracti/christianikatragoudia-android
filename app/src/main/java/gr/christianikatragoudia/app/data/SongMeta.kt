@@ -6,6 +6,8 @@ import androidx.room.PrimaryKey
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlin.math.pow
+
 
 @Entity(
     tableName = "song_meta",
@@ -21,10 +23,18 @@ import java.time.ZonedDateTime
 )
 data class SongMeta(
     @PrimaryKey val id: Int,
-    val zoom: Float = 1f,
+    val zoom: Float = DEFAULT_SCALE,
     val starred: Boolean = false,
     val visited: LocalDateTime? = null,
 ) {
+
+    companion object {
+
+        const val DEFAULT_SCALE = 1f
+        val minScale = 2f.pow(-2)
+        val maxScale = 2f.pow(+2)
+        val scaleStep = 2f.pow(0.1f)
+    }
 
     fun visit(): SongMeta {
         val zoned = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"))

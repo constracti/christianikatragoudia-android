@@ -4,6 +4,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import gr.christianikatragoudia.app.music.MusicNote
+import kotlin.math.pow
+
 
 @Entity(
     tableName = "chord_meta",
@@ -20,5 +22,14 @@ import gr.christianikatragoudia.app.music.MusicNote
 data class ChordMeta(
     @PrimaryKey val id: Int,
     val tonality: MusicNote? = null,
-    val zoom: Float = 1f,
-)
+    val zoom: Float = DEFAULT_SCALE,
+) {
+
+    companion object {
+
+        const val DEFAULT_SCALE = 1f
+        val minScale = 2f.pow(-2)
+        val maxScale = 2f.pow(+2)
+        val scaleStep = 2f.pow(0.1f)
+    }
+}

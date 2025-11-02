@@ -1,5 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gr.christianikatragoudia.app.TheApplication
@@ -17,25 +18,47 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+
 class SongViewModel(
     private val songId: Int,
     private val application: TheApplication,
 ) : ViewModel() {
 
+    companion object {
+
+        val speedList = listOf(
+            15f, 15.75f, 16.5f, 17.25f,
+            18f, 10f, 20f, 21f,
+            22f,  23f, 24f, 25f,
+            26f, 27f, 28f, 29f,
+            30f,
+            31.5f, 33f, 34.5f, 36f,
+            38f, 40f, 42f, 44f,
+            46f, 48f, 50f, 52f,
+            54f, 56f, 58f, 60f,
+        )
+    }
+
+    sealed class State {
+
+        data class StartState(val id: Int) : State()
+        data class ReadyState(
+            val song: Song,
+            val chord: Chord,
+            val songMeta: SongMeta,
+            val chordMeta: ChordMeta,
+            val lyricsOffset: Float,
+            val chordsOffset: Offset,
+            val chordsScrolling: Boolean,
+            val chordsSpeeding: Boolean,
+            val speed: Float, // TODO move in chord meta and rename zoom fields
+        ) : State()
+    }
+
+    private val _state = MutableStateFlow<State>(State.StartState(id = songId))
+    val state = _state.asStateFlow()
+
     val hiddenTonalities = SettingsRepo(application).hiddenTonalities
-
-    data class UiState(
-        val song: Song? = null,
-        val chord: Chord? = null,
-        val songMeta: SongMeta? = null,
-        val chordMeta: ChordMeta? = null,
-        val loading: Boolean = true,
-        val passed: Boolean = false,
-        val immerse: Boolean = false,
-    )
-
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -47,32 +70,37 @@ class SongViewModel(
                 TheDatabase.getInstance(application).songDao().upsert(songMeta)
                 val chordMeta = TheDatabase.getInstance(application).chordDao().getMetaById(chord.id)
                     ?: ChordMeta(chord.id)
-                _uiState.update {
-                    it.copy(
+                _state.update {
+                    State.ReadyState(
                         song = song,
                         chord = chord,
                         songMeta = songMeta,
                         chordMeta = chordMeta,
-                        loading = false,
-                        passed = true,
+                        lyricsOffset = SongLyricsFocusControl.MAX_OFFSET,
+                        chordsOffset = SongChordsFocusControl.maxOffset,
+                        chordsScrolling = false,
+                        chordsSpeeding = false,
+                        speed = 30f, // TODO default speed
                     )
                 }
                 TheAnalytics.logScreenView(
                     screenClass = song.permalink.replace(BASE_URL, "/"),
                     screenName = song.title,
                 )
-            } else {
-                _uiState.update {
-                    it.copy(loading = false)
-                }
             }
         }
     }
 
     fun setStarred(starred: Boolean) {
-        val songMeta = _uiState.value.songMeta?.copy(starred = starred) ?: return
-        _uiState.update {
-            it.copy(songMeta = songMeta)
+        val songMeta = when (state.value) {
+            is State.ReadyState -> (state.value as State.ReadyState).songMeta
+            else -> throw Error()
+        }.copy(starred = starred)
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(songMeta = songMeta)
+                else -> throw Error()
+            }
         }
         viewModelScope.launch {
             TheDatabase.getInstance(application).songDao().upsert(songMeta)
@@ -80,38 +108,95 @@ class SongViewModel(
     }
 
     fun setTonality(tonality: MusicNote?) {
-        val chordMeta = _uiState.value.chordMeta?.copy(tonality = tonality) ?: return
-        _uiState.update {
-            it.copy(chordMeta = chordMeta)
+        val chordMeta = when (state.value) {
+            is State.ReadyState -> (state.value as State.ReadyState).chordMeta
+            else -> throw Error()
+        }.copy(tonality = tonality)
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(chordMeta = chordMeta)
+                else -> throw Error()
+            }
         }
         viewModelScope.launch {
             TheDatabase.getInstance(application).chordDao().upsert(chordMeta)
         }
     }
 
-    fun setSongZoom(zoom: Float) {
-        val songMeta = _uiState.value.songMeta?.copy(zoom = zoom) ?: return
-        _uiState.update {
-            it.copy(songMeta = songMeta)
+    fun setSongScale(scale: Float) {
+        val songMeta = when (state.value) {
+            is State.ReadyState -> (state.value as State.ReadyState).songMeta
+            else -> throw Error()
+        }.copy(zoom = scale)
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(songMeta = songMeta)
+                else -> throw Error()
+            }
         }
         viewModelScope.launch {
             TheDatabase.getInstance(application).songDao().upsert(songMeta)
         }
     }
 
-    fun setChordZoom(zoom: Float) {
-        val chordMeta = _uiState.value.chordMeta?.copy(zoom = zoom) ?: return
-        _uiState.update {
-            it.copy(chordMeta = chordMeta)
+    fun setChordScale(scale: Float) {
+        val chordMeta = when (state.value) {
+            is State.ReadyState -> (state.value as State.ReadyState).chordMeta
+            else -> throw Error()
+        }.copy(zoom = scale)
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(chordMeta = chordMeta)
+                else -> throw Error()
+            }
         }
         viewModelScope.launch {
             TheDatabase.getInstance(application).chordDao().upsert(chordMeta)
         }
     }
 
-    fun setImmerse(immerse: Boolean) {
-        _uiState.update {
-            it.copy(immerse = immerse)
+    fun setLyricsOffset(offset: Float) {
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(lyricsOffset = offset)
+                else -> throw Error()
+            }
+        }
+    }
+
+    fun setChordsOffset(offset: Offset) {
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(chordsOffset = offset)
+                else -> throw Error()
+            }
+        }
+    }
+
+    fun setChordsScrolling(scrolling: Boolean) {
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(chordsScrolling = scrolling)
+                else -> throw Error()
+            }
+        }
+    }
+
+    fun setChordsSpeeding(speeding: Boolean) {
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(chordsSpeeding = speeding)
+                else -> throw Error()
+            }
+        }
+    }
+
+    fun setSpeed(speed: Float) {
+        _state.update {
+            when (it) {
+                is State.ReadyState -> it.copy(speed = speed)
+                else -> throw Error()
+            }
         }
     }
 }

@@ -12,21 +12,26 @@
     <string name="download">Λήψη</string>
     <string name="download_error_message">Παρουσιάστηκε κάποιο σφάλμα. Έλεγξε ότι έχεις συνδεθεί στο διαδίκτυο.</string>
     <string name="back_button">Επιστροφή</string>
-    <string name="error">Σφάλμα</string>
     <string name="starred_add">Προσθήκη στα αγαπημένα</string>
     <string name="starred_remove">Αφαίρεση από τα αγαπημένα</string>
+    <string name="link_open">Άνοιγμα συνδέσμου</string>
+    <string name="link_send">Κοινοποίηση συνδέσμου</string>
     <string name="tonality_label">Συγχορδίες</string>
-    <string name="tonality_hide_text">Απόκρυψη συγχορδιών</string>
-    <string name="tonality_reset_text">Επιλογή αρχικής τονικότητας</string>
-    <string name="tonality_none_text">(μόνο στίχοι)</string>
-    <string name="tonality_default_text">(προεπιλογή)</string>
-    <string name="font_size_decrease_text">Μείωση μεγέθους γραμματοσειράς</string>
-    <string name="font_size_increase_text">Αύξηση μεγέθους γραμματοσειράς</string>
-    <string name="font_size_reset_text">Επαναφορά μεγέθους γραμματοσειράς</string>
-    <string name="full_screen_text">Προβολή πλήρους οθόνης</string>
-    <string name="full_screen_exit_text">Ακύρωση προβολής πλήρους οθόνης</string>
-    <string name="open_link">Άνοιγμα συνδέσμου</string>
-    <string name="send_link">Κοινοποίηση συνδέσμου</string>
+    <string name="tonality_hide">Απόκρυψη συγχορδιών</string>
+    <string name="tonality_reset">Επαναφορά συγχορδιών</string>
+    <string name="tonality_none">(μόνο στίχοι)</string>
+    <string name="tonality_default">(προεπιλογή)</string>
+    <string name="scale_decrease">Μείωση μεγέθους</string>
+    <string name="scale_increase">Αύξηση μεγέθους</string>
+    <string name="scale_reset">Επαναφορά μεγέθους</string>
+    <string name="scale_optimize">Προσαρμογή στο πλάτος</string>
+    <string name="speed_adjust">Ρύθμιση ταχύτητας</string>
+    <string name="speed_decrease_greatly">Μεγάλη μείωση ταχύτητας</string>
+    <string name="speed_decrease">Μείωση ταχύτητας</string>
+    <string name="speed_increase">Αύξηση ταχύτητας</string>
+    <string name="speed_increase_greatly">Μεγάλη αύξηση ταχύτητας</string>
+    <string name="scroll">Κύλιση</string>
+    <string name="pause">Παύση</string>
     <string name="search">Αναζήτηση</string>
     <string name="more">Περισσότερα</string>
     <string name="details">Λεπτομέρειες</string>
@@ -123,6 +128,9 @@
     </string-array>
     <string-array name="version_1_5">
         <item>Ταξινόμηση αποτελεσμάτων αναζήτησης κατά συνάφεια</item>
+    </string-array>
+    <string-array name="version_1_6">
+        <item>Αυτόματη κύλιση συγχορδιών</item>
     </string-array>
     <string name="starred">Αγαπημένα</string>
     <string name="recent">Πρόσφατα</string>

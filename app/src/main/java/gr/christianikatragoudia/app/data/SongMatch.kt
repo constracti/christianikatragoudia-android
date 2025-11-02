@@ -1,6 +1,5 @@
 package gr.christianikatragoudia.app.data
 
-import gr.christianikatragoudia.app.toUInt
 
 data class SongMatch(
     val id: Int,
@@ -58,5 +57,12 @@ data class SongMatch(
         result = 31 * result + excerpt.hashCode()
         result = 31 * result + matchInfo.contentHashCode()
         return result
+    }
+}
+
+
+private fun ByteArray.toUInt(): UInt {
+    return this.reversed().fold(0u) { acc, byte ->
+        acc.shl(8).or(byte.toUInt().and(255u))
     }
 }

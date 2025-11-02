@@ -3,6 +3,7 @@ package gr.christianikatragoudia.app.music
 import androidx.annotation.StringRes
 import gr.christianikatragoudia.app.R
 
+
 class MusicNote(val step: MusicStep, val alter: MusicAlter) {
 
     override fun equals(other: Any?): Boolean {
@@ -73,8 +74,7 @@ class MusicNote(val step: MusicStep, val alter: MusicAlter) {
         }
 
         const val NOTATION_ERROR = "?"
-        const val NOTATION_NULL = "-"
-        @StringRes val NOTATION_LYRICS = R.string.tonality_none_text
+        @StringRes val NOTATION_LYRICS = R.string.tonality_none
 
         fun toNotationOrElse(note: MusicNote?, nullNotation: String): String {
             return toNotationOrNull(note) ?: nullNotation

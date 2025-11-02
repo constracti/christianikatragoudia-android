@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="song_font_size">16</integer>
+    <integer name="song_line_height">24</integer>
+    <dimen name="spacing">10dp</dimen>
+    <dimen name="speed_width">48dp</dimen>
+</resources>

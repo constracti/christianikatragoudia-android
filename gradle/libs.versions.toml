@@ -1,11 +1,11 @@
 [versions]
-application = "8.11.1"
+application = "8.12.0"
 kotlin = "2.2.0"
 compose-bom = "2025.07.00"
 datastore = "1.1.7"
 navigation = "2.7.7" # 2.8.0 introduces type safety for destinations
 room = "2.7.2"
-work-runtime-ktx = "2.10.2"
+work-runtime-ktx = "2.10.3"
 firebase-bom = "34.0.0"
 google-devtools-ksp = "2.2.0-2.0.2"
 google-services = "4.4.3"
@@ -15,6 +15,7 @@ squareup-retrofit2 = "3.0.0"
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling"}
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }

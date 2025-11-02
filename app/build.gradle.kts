@@ -17,8 +17,8 @@ android {
         applicationId = "gr.christianikatragoudia.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.5.3"
+        versionCode = 16
+        versionName = "1.6.0"
     }
 
     buildTypes {
@@ -52,6 +52,7 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.material3)
     implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
 
     // https://developer.android.com/jetpack/androidx/releases/datastore#preferences-datastore-dependencies
     implementation(libs.datastore.preferences)

@@ -95,28 +95,6 @@ fun LoadingScreen(
     }
 }
 
-@Composable
-fun ErrorScreen(
-    title: String = stringResource(R.string.app_name),
-    message: String = stringResource(R.string.error),
-    navigateBack: (() -> Unit)? = null,
-) {
-    Scaffold(
-        topBar = {
-            TheTopAppBar(title, navigateBack)
-        },
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-    ) {
-        Box(
-            modifier = Modifier.padding(it),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(message)
-        }
-    }
-}
-
 enum class TheNavigationBarScreen {
     SEARCH,
     STARRED,
