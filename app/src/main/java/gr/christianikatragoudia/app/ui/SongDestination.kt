@@ -39,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -148,8 +147,7 @@ object SongDestination : NavDestination {
                         changeScrolling = { viewModel.setChordsScrolling(it) },
                         currentSpeeding = readyState.chordsSpeeding,
                         changeSpeeding = { viewModel.setChordsSpeeding(it) },
-                        initialSpeed = readyState.chordMeta.speed ?: readyState.chord.speed ?:
-                            SongViewModel.defaultSpeed,
+                        selectedSpeed = readyState.chordMeta.speed,
                         changeSpeed = { viewModel.setSpeed(it) },
                         navigateBack = navigateBack,
                     )
@@ -314,7 +312,7 @@ private fun LyricsScreen(
                 Box(modifier = boxModifier.fillMaxHeight().weight(1f)) {
                     LyricsContent(content = song.content, scale = scale, modifier = textModifier)
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(horizontalAlignment = Alignment.End) {
                     Row {
                         navigateBackControl.AsIconButton()
                         starControl.AsIconButton()
@@ -361,7 +359,7 @@ private fun ChordsScreen(
     changeScrolling: (Boolean) -> Unit,
     currentSpeeding: Boolean,
     changeSpeeding: (Boolean) -> Unit,
-    initialSpeed: Float,
+    selectedSpeed: Float?,
     changeSpeed: (Float) -> Unit,
     navigateBack: () -> Unit,
 ) {
@@ -386,13 +384,15 @@ private fun ChordsScreen(
     ) { paddingValues ->
         val coroutineScope = rememberCoroutineScope()
         var scale by remember { mutableFloatStateOf(initialScale) }
+        val defaultSpeed = chord.speed ?: SongViewModel.defaultSpeed
+        val currentSpeed = selectedSpeed ?: defaultSpeed
         var focusControl by remember {
             mutableStateOf(SongChordsFocusControl.Start(
                 scale = initialScale,
                 initialOffset = initialOffset,
                 changeOffset = { changeOffset(it) },
                 changeScrolling = { changeScrolling(it) },
-                linesPerMinute = initialSpeed,
+                linesPerMinute = currentSpeed,
             ) as SongChordsFocusControl)
         }
         val interval = MusicInterval.getByNotes(chord.tonality, currentTonality)
@@ -528,6 +528,15 @@ private fun ChordsScreen(
                 }
             }
         }
+        val onSpeedButtonClick: (Float) -> Unit = { newSpeed ->
+            changeSpeed(newSpeed)
+            coroutineScope.launch {
+                focusControl.reconfigure(linesPerMinute = newSpeed)
+            }
+        }
+        val resetSpeedControl = SongControl.resetSpeed(enabled = currentSpeed != defaultSpeed) {
+            onSpeedButtonClick(defaultSpeed)
+        }
         if (configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
             Column(
                 modifier = containerModifier,
@@ -543,17 +552,8 @@ private fun ChordsScreen(
                         lineHeight = integerResource(R.integer.song_line_height).sp,
                     )
                 }
-                if (currentSpeeding) {
-                    SpeedRow(
-                        initialSpeed = initialSpeed,
-                        changeSpeed = {
-                            changeSpeed(it)
-                            coroutineScope.launch {
-                                focusControl.reconfigure(linesPerMinute = it)
-                            }
-                        },
-                    )
-                }
+                if (currentSpeeding)
+                    SpeedRow(currentSpeed = currentSpeed, changeSpeed = onSpeedButtonClick)
                 Row {
                     TonalityMenu(
                         hiddenTonalities = hiddenTonalities,
@@ -586,6 +586,7 @@ private fun ChordsScreen(
                             resetTonalityControl.AsDropdownMenuItem(collapse = collapse)
                             resetScaleControl.AsDropdownMenuItem(collapse = collapse)
                             optimizeScaleControl?.AsDropdownMenuItem(collapse = collapse)
+                            resetSpeedControl.AsDropdownMenuItem(collapse = collapse)
                         }
                     }
                 }
@@ -604,7 +605,7 @@ private fun ChordsScreen(
                         lineHeight = integerResource(R.integer.song_line_height).sp,
                     )
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(horizontalAlignment = Alignment.End) {
                     Row {
                         navigateBackControl.AsIconButton()
                         starControl.AsIconButton()
@@ -613,21 +614,14 @@ private fun ChordsScreen(
                         sendLinkControl.AsIconButton()
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    SpeedRow(
-                        initialSpeed = initialSpeed,
-                        changeSpeed = {
-                            changeSpeed(it)
-                            coroutineScope.launch {
-                                focusControl.reconfigure(linesPerMinute = it)
-                            }
-                        },
-                    )
+                    resetSpeedControl.AsIconButton()
+                    SpeedRow(currentSpeed = currentSpeed, changeSpeed = onSpeedButtonClick)
                     Row {
                         scrollControl?.AsIconButton()
+                        optimizeScaleControl?.AsIconButton()
                         decreaseScaleControl.AsIconButton()
                         increaseScaleControl.AsIconButton()
                         resetScaleControl.AsIconButton()
-                        optimizeScaleControl?.AsIconButton()
                     }
                     Row {
                         TonalityMenu(
@@ -770,30 +764,23 @@ private fun AdjustSpeedToggleButton(
 }
 
 @Composable
-private fun SpeedRow(
-    initialSpeed: Float,
-    changeSpeed: (Float) -> Unit,
-) {
+private fun SpeedRow(currentSpeed: Float, changeSpeed: (Float) -> Unit) {
     val speedList = SongViewModel.speedList
     val minIndex = 0
     val maxIndex = speedList.size - 1
-    val initialIndex = speedList.map {
-        it.minus(initialSpeed).absoluteValue
+    val currentIndex = speedList.map {
+        it.minus(currentSpeed).absoluteValue
     }.withIndex().minBy { it.value }.index
-    var currentIndex by remember { mutableIntStateOf(initialIndex) }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val currentSpeed = speedList[currentIndex]
         val currentText = if (currentSpeed % 1f == 0f)
             currentSpeed.roundToInt().toString()
         else
             currentSpeed.toString()
         SongControl.greatlyDecreaseSpeed(enabled = currentIndex > minIndex) {
-            currentIndex = currentIndex.minus(4).coerceIn(minIndex, maxIndex)
-            changeSpeed(speedList[currentIndex])
+            changeSpeed(speedList[currentIndex.minus(4).coerceIn(minIndex, maxIndex)])
         }.AsIconButton()
         SongControl.decreaseSpeed(enabled = currentIndex > minIndex) {
-            currentIndex = currentIndex.minus(1).coerceIn(minIndex, maxIndex)
-            changeSpeed(speedList[currentIndex])
+            changeSpeed(speedList[currentIndex.minus(1).coerceIn(minIndex, maxIndex)])
         }.AsIconButton()
         Text(
             text = currentText,
@@ -801,12 +788,10 @@ private fun SpeedRow(
             textAlign = TextAlign.Center,
         )
         SongControl.increaseSpeed(enabled = currentIndex < maxIndex) {
-            currentIndex = currentIndex.plus(1).coerceIn(minIndex, maxIndex)
-            changeSpeed(speedList[currentIndex])
+            changeSpeed(speedList[currentIndex.plus(1).coerceIn(minIndex, maxIndex)])
         }.AsIconButton()
         SongControl.greatlyIncreaseSpeed(enabled = currentIndex < maxIndex) {
-            currentIndex = currentIndex.plus(4).coerceIn(minIndex, maxIndex)
-            changeSpeed(speedList[currentIndex])
+            changeSpeed(speedList[currentIndex.plus(4).coerceIn(minIndex, maxIndex)])
         }.AsIconButton()
     }
 }
@@ -859,7 +844,7 @@ private fun ChordsPreview() {
             changeScrolling = {},
             currentSpeeding = true,
             changeSpeeding = {},
-            initialSpeed = SongViewModel.defaultSpeed,
+            selectedSpeed = null,
             changeSpeed = {},
             navigateBack = {},
         )

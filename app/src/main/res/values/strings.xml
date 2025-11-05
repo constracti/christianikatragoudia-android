@@ -30,6 +30,7 @@
     <string name="speed_decrease">Μείωση ταχύτητας</string>
     <string name="speed_increase">Αύξηση ταχύτητας</string>
     <string name="speed_increase_greatly">Μεγάλη αύξηση ταχύτητας</string>
+    <string name="speed_reset">Επαναφορά ταχύτητας</string>
     <string name="scroll">Κύλιση</string>
     <string name="pause">Παύση</string>
     <string name="search">Αναζήτηση</string>

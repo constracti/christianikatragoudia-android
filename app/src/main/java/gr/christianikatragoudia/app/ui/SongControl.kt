@@ -232,6 +232,13 @@ class SongControl(
             enabled = enabled,
             onClick = onClick,
         )
+
+        fun resetSpeed(enabled: Boolean, onClick: () -> Unit) = SongControl(
+            text = R.string.speed_reset,
+            graphic = Graphic.PainterGraphic(R.drawable.baseline_1x_mobiledata_24),
+            enabled = enabled,
+            onClick = onClick,
+        )
     }
 
     @OptIn(ExperimentalMaterial3Api::class) // TooltipBox
