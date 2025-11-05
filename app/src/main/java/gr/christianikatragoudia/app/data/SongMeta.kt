@@ -23,7 +23,7 @@ import kotlin.math.pow
 )
 data class SongMeta(
     @PrimaryKey val id: Int,
-    val zoom: Float = DEFAULT_SCALE,
+    val scale: Float = DEFAULT_SCALE,
     val starred: Boolean = false,
     val visited: LocalDateTime? = null,
 ) {

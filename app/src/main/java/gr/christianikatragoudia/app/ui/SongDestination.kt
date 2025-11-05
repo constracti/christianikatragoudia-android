@@ -124,7 +124,7 @@ object SongDestination : NavDestination {
                         hiddenTonalities = hiddenTonalities,
                         defaultTonality = readyState.chord.tonality,
                         changeTonality = { viewModel.setTonality(it) },
-                        initialScale = readyState.songMeta.zoom,
+                        initialScale = readyState.songMeta.scale,
                         changeScale = { viewModel.setSongScale(it) },
                         initialOffset = readyState.lyricsOffset,
                         changeOffset = { viewModel.setLyricsOffset(it) },
@@ -139,7 +139,7 @@ object SongDestination : NavDestination {
                         hiddenTonalities = hiddenTonalities,
                         currentTonality = readyState.chordMeta.tonality,
                         changeTonality = { viewModel.setTonality(it) },
-                        initialScale = readyState.chordMeta.zoom,
+                        initialScale = readyState.chordMeta.scale,
                         changeScale = { viewModel.setChordScale(it) },
                         initialOffset = readyState.chordsOffset,
                         changeOffset = { viewModel.setChordsOffset(it) },
@@ -147,7 +147,8 @@ object SongDestination : NavDestination {
                         changeScrolling = { viewModel.setChordsScrolling(it) },
                         currentSpeeding = readyState.chordsSpeeding,
                         changeSpeeding = { viewModel.setChordsSpeeding(it) },
-                        initialSpeed = readyState.speed,
+                        initialSpeed = readyState.chordMeta.speed ?: readyState.chord.speed ?:
+                            SongViewModel.defaultSpeed,
                         changeSpeed = { viewModel.setSpeed(it) },
                         navigateBack = navigateBack,
                     )
@@ -852,7 +853,7 @@ private fun ChordsPreview() {
             changeScrolling = {},
             currentSpeeding = true,
             changeSpeeding = {},
-            initialSpeed = 15f,
+            initialSpeed = SongViewModel.defaultSpeed,
             changeSpeed = {},
             navigateBack = {},
         )

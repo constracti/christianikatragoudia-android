@@ -22,7 +22,8 @@ import kotlin.math.pow
 data class ChordMeta(
     @PrimaryKey val id: Int,
     val tonality: MusicNote? = null,
-    val zoom: Float = DEFAULT_SCALE,
+    val scale: Float = DEFAULT_SCALE,
+    val speed: Float? = null, // TODO reset globally and per song
 ) {
 
     companion object {

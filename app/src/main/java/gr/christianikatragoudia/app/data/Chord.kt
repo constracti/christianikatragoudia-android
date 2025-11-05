@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import gr.christianikatragoudia.app.music.MusicNote
 import java.time.LocalDateTime
 
+
 @Entity(
     tableName = "chord",
     foreignKeys = [
@@ -26,4 +27,5 @@ data class Chord(
     @ColumnInfo(index = true) val parent: Int,
     val content: String,
     val tonality: MusicNote,
+    val speed: Float?,
 )

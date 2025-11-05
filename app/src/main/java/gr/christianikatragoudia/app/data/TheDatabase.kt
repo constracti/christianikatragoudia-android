@@ -10,7 +10,9 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import gr.christianikatragoudia.app.music.MusicNoteTypeConverter
 
+
 private val MIGRATION_1_2 = object : Migration(1, 2) {
+
     override fun migrate(db: SupportSQLiteDatabase) {
         // chord parent index
         db.execSQL("CREATE INDEX `index_chord_parent` ON `chord` (`parent`)")
@@ -52,8 +54,49 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+
+private val MIGRATION_3_4 = object : Migration(3, 4) {
+
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // song meta scale
+        db.execSQL("ALTER TABLE `song_meta` RENAME `zoom` TO `scale`")
+        // chord meta scale
+        db.execSQL("ALTER TABLE `chord_meta` RENAME `zoom` TO `scale`")
+        // chord speed
+        db.execSQL("ALTER TABLE `chord` ADD `speed` REAL")
+        // chord meta speed
+        db.execSQL("ALTER TABLE `chord_meta` ADD `speed` REAL")
+        // replace final sigma
+        val cursor = db.query("SELECT `id`, `title`, `content` FROM `song`")
+        val songFtsList = mutableListOf<SongFts>()
+        cursor.moveToFirst()
+        while (cursor.isAfterLast.not()) {
+            val songFts = SongFts(
+                id = cursor.getInt(0),
+                title = SongFts.tokenize(cursor.getString(1)),
+                content = SongFts.tokenize(cursor.getString(2)),
+            )
+            songFtsList.add(songFts)
+            cursor.moveToNext()
+        }
+        db.execSQL("DELETE FROM `song_fts`")
+        val statement = db.compileStatement("INSERT INTO `song_fts` (`rowid`, `title`, `content`) VALUES (?, ?, ?)")
+        songFtsList.forEach { songFts ->
+            statement.bindLong(1, songFts.id.toLong())
+            statement.bindString(2, songFts.title)
+            statement.bindString(3, songFts.content)
+            statement.executeInsert()
+            statement.clearBindings()
+        }
+        db.execSQL("INSERT INTO `song_fts`(`song_fts`) VALUES ('optimize')")
+    }
+}
+
+
+// TODO wrap consequent queries in transactions
+
 @Database(
-    version = 3,
+    version = 4,
     entities = [
         Song::class,
         Chord::class,
@@ -63,7 +106,7 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
     ],
     exportSchema = true,
     autoMigrations = [
-        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 2, to = 3), // song fts
     ],
 )
 @TypeConverters(
@@ -89,6 +132,7 @@ abstract class TheDatabase : RoomDatabase() {
                     "db_main",
                 ).addMigrations(
                     MIGRATION_1_2,
+                    MIGRATION_3_4,
                 ).fallbackToDestructiveMigration(true).build().also {
                     Instance = it
                 }

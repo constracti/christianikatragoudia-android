@@ -10,6 +10,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
+
 private val moshi = Moshi.Builder()
     .add(DateTimeConverter())
     .add(MusicNoteJsonAdapter())
@@ -27,6 +28,7 @@ private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
     .build()
 
+
 interface WebAppService {
 
     @GET("wp-admin/admin-ajax.php?action=xt_app_notification_1")
@@ -35,6 +37,7 @@ interface WebAppService {
     @GET("wp-admin/admin-ajax.php?action=xt_app_patch_2")
     suspend fun getPatch(@Query("after") after: Int?, @Query("full") full: Boolean): Patch
 }
+
 
 object WebApp {
 

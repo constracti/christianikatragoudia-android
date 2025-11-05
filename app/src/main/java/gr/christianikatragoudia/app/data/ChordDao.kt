@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
 
+
 @Dao
 interface ChordDao {
 
@@ -34,6 +35,9 @@ interface ChordDao {
     @Query("UPDATE chord_meta SET tonality = NULL")
     suspend fun resetTonality()
 
-    @Query("UPDATE chord_meta SET zoom = 1")
-    suspend fun resetZoom()
+    @Query("UPDATE chord_meta SET scale = 1")
+    suspend fun resetScale()
+
+    @Query("SELECT COUNT(*) FROM chord WHERE speed IS NOT NULL")
+    suspend fun countSpeed(): Int
 }

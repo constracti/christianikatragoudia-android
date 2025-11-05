@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.Fts4
 import androidx.room.PrimaryKey
 
+
 @Entity(tableName = "song_fts")
 @Fts4
 data class SongFts (
@@ -23,13 +24,18 @@ data class SongFts (
     companion object {
 
         fun tokenize(string: String): String {
-            // TODO replace final sigma
             val lowercase = string
                 .replace(Regex("<[^>]*>"), " ")
                 .lowercase()
             val normalized = Normalizer2.getNFDInstance().normalize(lowercase)
             return normalized
-                .toCharArray().filter {
+                .toCharArray().map {
+                    when (it) {
+                        Char(0x03c2) -> // small final sigma
+                            Char(0x03c3) // small sigma
+                        else -> it
+                    }
+                }.filter {
                     it.category != CharCategory.NON_SPACING_MARK
                 }.map {
                     when (it.category) {

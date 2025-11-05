@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
+
 private const val SETTINGS_NAME = "settings"
 
 private val Context.dataStore by preferencesDataStore(name = SETTINGS_NAME)
+
 
 class SettingsRepo(context: Context) {
 

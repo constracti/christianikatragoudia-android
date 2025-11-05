@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+
 class OptionsViewModel(private val application: TheApplication) : ViewModel() {
 
     data class UiState(
@@ -56,13 +57,13 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
         }
     }
 
-    fun resetZoom() {
+    fun resetScale() {
         _uiState.update {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).songDao().resetZoom()
-            TheDatabase.getInstance(application).chordDao().resetZoom()
+            TheDatabase.getInstance(application).songDao().resetScale()
+            TheDatabase.getInstance(application).chordDao().resetScale()
             _uiState.update {
                 it.copy(processing = false)
             }

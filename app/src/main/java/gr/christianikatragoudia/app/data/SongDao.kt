@@ -8,6 +8,7 @@ import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
+
 @Dao
 interface SongDao {
 
@@ -47,14 +48,14 @@ interface SongDao {
     @Query("SELECT COUNT(*) FROM song")
     suspend fun countData(): Int
 
-    @Query("SELECT COUNT (*) FROM song_fts")
+    @Query("SELECT COUNT(*) FROM song_fts")
     suspend fun countFts(): Int
 
     @Query("UPDATE song_meta SET visited = NULL")
     suspend fun clearRecent()
 
-    @Query("UPDATE song_meta SET zoom = 1")
-    suspend fun resetZoom()
+    @Query("UPDATE song_meta SET scale = 1")
+    suspend fun resetScale()
 
     @Query(
         """

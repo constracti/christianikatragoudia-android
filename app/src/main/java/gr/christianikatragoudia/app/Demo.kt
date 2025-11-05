@@ -82,5 +82,6 @@ object Demo {
             Μπρος εσύ, πίσω εγώ και γοργοί…
         """.trimIndent(),
         tonality = MusicNote.byNotation("G")!!,
+        speed = 30f,
     )
 }

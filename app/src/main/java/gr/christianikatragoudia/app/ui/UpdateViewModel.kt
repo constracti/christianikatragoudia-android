@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+
 class UpdateViewModel(private val application: TheApplication) : ViewModel() {
 
     private val _snackbarMessage = MutableSharedFlow<String?>()
@@ -107,7 +108,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                 _uiState.update {
                     it.copy(loading = false, actions = actions.toSortedMap())
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 setSnackbarMessage(application.getString(R.string.download_error_message))
                 _uiState.update {
                     it.copy(loading = false)
@@ -123,7 +124,11 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
         }
         viewModelScope.launch {
             try {
-                val after = SettingsRepo(application).getUpdateTimestamp()
+                // if chord table has no speed info, download the whole patch
+                val updateTimestamp = SettingsRepo(application).getUpdateTimestamp()
+                val countSpeed = TheDatabase.getInstance(application).chordDao().countSpeed()
+                val after = if (countSpeed > 0) updateTimestamp else null
+
                 val patch = WebApp.retrofitService.getPatch(after, true)
 
                 val oldSongMap = TheDatabase.getInstance(application).songDao().getDataList().associateBy { it.id }
@@ -175,7 +180,7 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                 _uiState.update {
                     it.copy(loading = false, actions = mutableMapOf())
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 setSnackbarMessage(application.getString(R.string.download_error_message))
                 _uiState.update {
                     it.copy(loading = false)

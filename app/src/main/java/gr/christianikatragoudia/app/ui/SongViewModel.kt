@@ -28,7 +28,7 @@ class SongViewModel(
 
         val speedList = listOf(
             15f, 15.75f, 16.5f, 17.25f,
-            18f, 10f, 20f, 21f,
+            18f, 19f, 20f, 21f,
             22f,  23f, 24f, 25f,
             26f, 27f, 28f, 29f,
             30f,
@@ -37,6 +37,8 @@ class SongViewModel(
             46f, 48f, 50f, 52f,
             54f, 56f, 58f, 60f,
         )
+
+        val defaultSpeed = speedList[speedList.size / 2]
     }
 
     sealed class State {
@@ -51,7 +53,6 @@ class SongViewModel(
             val chordsOffset: Offset,
             val chordsScrolling: Boolean,
             val chordsSpeeding: Boolean,
-            val speed: Float, // TODO move in chord meta and rename zoom fields
         ) : State()
     }
 
@@ -80,7 +81,6 @@ class SongViewModel(
                         chordsOffset = SongChordsFocusControl.maxOffset,
                         chordsScrolling = false,
                         chordsSpeeding = false,
-                        speed = 30f, // TODO default speed
                     )
                 }
                 TheAnalytics.logScreenView(
@@ -127,7 +127,7 @@ class SongViewModel(
         val songMeta = when (state.value) {
             is State.ReadyState -> (state.value as State.ReadyState).songMeta
             else -> throw Error()
-        }.copy(zoom = scale)
+        }.copy(scale = scale)
         _state.update {
             when (it) {
                 is State.ReadyState -> it.copy(songMeta = songMeta)
@@ -143,7 +143,7 @@ class SongViewModel(
         val chordMeta = when (state.value) {
             is State.ReadyState -> (state.value as State.ReadyState).chordMeta
             else -> throw Error()
-        }.copy(zoom = scale)
+        }.copy(scale = scale)
         _state.update {
             when (it) {
                 is State.ReadyState -> it.copy(chordMeta = chordMeta)
@@ -192,11 +192,18 @@ class SongViewModel(
     }
 
     fun setSpeed(speed: Float) {
+        val chordMeta = when (state.value) {
+            is State.ReadyState -> (state.value as State.ReadyState).chordMeta
+            else -> throw Error()
+        }.copy(speed = speed)
         _state.update {
             when (it) {
-                is State.ReadyState -> it.copy(speed = speed)
+                is State.ReadyState -> it.copy(chordMeta = chordMeta)
                 else -> throw Error()
             }
+        }
+        viewModelScope.launch {
+            TheDatabase.getInstance(application).chordDao().upsert(chordMeta)
         }
     }
 }

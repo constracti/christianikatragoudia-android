@@ -44,6 +44,7 @@ import gr.christianikatragoudia.app.data.Version
 import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.ui.theme.ChristianikaTragoudiaTheme
 
+
 object OptionsDestination : NavDestination {
 
     override val route = "options"
@@ -134,7 +135,7 @@ object OptionsDestination : NavDestination {
                         text = stringResource(R.string.tools_font_size_reset_description),
                         enabled = !processing,
                         confirmButtonText = stringResource(R.string.reset),
-                        onConfirmButtonClick = { viewModel.resetZoom() },
+                        onConfirmButtonClick = { viewModel.resetScale() },
                     )
                     ListHeader(text = stringResource(R.string.application))
                     NavigationListItem(
