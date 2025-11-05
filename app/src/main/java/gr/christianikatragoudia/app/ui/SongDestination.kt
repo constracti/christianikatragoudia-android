@@ -86,6 +86,7 @@ import gr.christianikatragoudia.app.nav.NavDestination
 import gr.christianikatragoudia.app.ui.theme.ChristianikaTragoudiaTheme
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 
 object SongDestination : NavDestination {
@@ -781,6 +782,11 @@ private fun SpeedRow(
     }.withIndex().minBy { it.value }.index
     var currentIndex by remember { mutableIntStateOf(initialIndex) }
     Row(verticalAlignment = Alignment.CenterVertically) {
+        val currentSpeed = speedList[currentIndex]
+        val currentText = if (currentSpeed % 1f == 0f)
+            currentSpeed.roundToInt().toString()
+        else
+            currentSpeed.toString()
         SongControl.greatlyDecreaseSpeed(enabled = currentIndex > minIndex) {
             currentIndex = currentIndex.minus(4).coerceIn(minIndex, maxIndex)
             changeSpeed(speedList[currentIndex])
@@ -790,7 +796,7 @@ private fun SpeedRow(
             changeSpeed(speedList[currentIndex])
         }.AsIconButton()
         Text(
-            text = speedList[currentIndex].toString(), // TODO display round numbers as integers
+            text = currentText,
             modifier = Modifier.width(dimensionResource(R.dimen.speed_width)),
             textAlign = TextAlign.Center,
         )
