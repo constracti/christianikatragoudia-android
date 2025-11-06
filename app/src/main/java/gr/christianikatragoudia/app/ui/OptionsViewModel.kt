@@ -45,12 +45,12 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
         }
     }
 
-    fun resetTonality() {
+    fun clearTonality() {
         _uiState.update {
             it.copy(processing = true)
         }
         viewModelScope.launch {
-            TheDatabase.getInstance(application).chordDao().resetTonality()
+            TheDatabase.getInstance(application).chordDao().clearTonality()
             _uiState.update {
                 it.copy(processing = false)
             }
@@ -64,6 +64,18 @@ class OptionsViewModel(private val application: TheApplication) : ViewModel() {
         viewModelScope.launch {
             TheDatabase.getInstance(application).songDao().resetScale()
             TheDatabase.getInstance(application).chordDao().resetScale()
+            _uiState.update {
+                it.copy(processing = false)
+            }
+        }
+    }
+
+    fun resetSpeed() {
+        _uiState.update {
+            it.copy(processing = true)
+        }
+        viewModelScope.launch {
+            TheDatabase.getInstance(application).chordDao().resetSpeed()
             _uiState.update {
                 it.copy(processing = false)
             }

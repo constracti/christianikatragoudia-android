@@ -33,10 +33,13 @@ interface ChordDao {
     suspend fun getMetaById(id: Int): ChordMeta?
 
     @Query("UPDATE chord_meta SET tonality = NULL")
-    suspend fun resetTonality()
+    suspend fun clearTonality()
 
     @Query("UPDATE chord_meta SET scale = 1")
     suspend fun resetScale()
+
+    @Query("UPDATE chord_meta SET speed = NULL")
+    suspend fun resetSpeed()
 
     @Query("SELECT COUNT(*) FROM chord WHERE speed IS NOT NULL")
     suspend fun countSpeed(): Int

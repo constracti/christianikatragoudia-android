@@ -23,7 +23,7 @@ data class ChordMeta(
     @PrimaryKey val id: Int,
     val tonality: MusicNote? = null,
     val scale: Float = DEFAULT_SCALE,
-    val speed: Float? = null, // TODO reset globally
+    val speed: Float? = null,
 ) {
 
     companion object {

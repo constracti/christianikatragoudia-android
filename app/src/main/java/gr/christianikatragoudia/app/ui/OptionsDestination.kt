@@ -1,6 +1,7 @@
 package gr.christianikatragoudia.app.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -118,24 +121,31 @@ object OptionsDestination : NavDestination {
                     )
                     AlertListItem(
                         headline = stringResource(R.string.tools_recent_clear_title),
-                        text = stringResource(R.string.tools_recent_clear_description),
+                        description = stringResource(R.string.tools_recent_clear_description),
                         enabled = !processing,
                         confirmButtonText = stringResource(R.string.clear),
                         onConfirmButtonClick = { viewModel.clearRecent() },
                     )
                     AlertListItem(
-                        headline = stringResource(R.string.tools_tonality_reset_title),
-                        text = stringResource(R.string.tools_tonality_reset_description),
+                        headline = stringResource(R.string.tools_tonality_clear_title),
+                        description = stringResource(R.string.tools_tonality_clear_description),
                         enabled = !processing,
-                        confirmButtonText = stringResource(R.string.reset),
-                        onConfirmButtonClick = { viewModel.resetTonality() },
+                        confirmButtonText = stringResource(R.string.clear),
+                        onConfirmButtonClick = { viewModel.clearTonality() },
                     )
                     AlertListItem(
                         headline = stringResource(R.string.tools_font_size_reset_title),
-                        text = stringResource(R.string.tools_font_size_reset_description),
+                        description = stringResource(R.string.tools_font_size_reset_description),
                         enabled = !processing,
                         confirmButtonText = stringResource(R.string.reset),
                         onConfirmButtonClick = { viewModel.resetScale() },
+                    )
+                    AlertListItem(
+                        headline = stringResource(R.string.tools_speed_reset_title),
+                        description = stringResource(R.string.tools_speed_reset_description),
+                        enabled = !processing,
+                        confirmButtonText = stringResource(R.string.reset),
+                        onConfirmButtonClick = { viewModel.resetSpeed() },
                     )
                     ListHeader(text = stringResource(R.string.application))
                     NavigationListItem(
@@ -208,10 +218,10 @@ private fun NavigationListItem(
 }
 
 @Composable
-private fun AlertListItem(
+private fun AlertListItem( // TODO use string resources
     headline: String,
     support: String? = null,
-    text: String,
+    description: String,
     enabled: Boolean,
     confirmButtonText: String,
     onConfirmButtonClick: () -> Unit,
@@ -248,8 +258,15 @@ private fun AlertListItem(
                 }
             },
             icon = { Icon(imageVector = Icons.Default.Warning, contentDescription = null) },
-            title = { Text(text = headline) },
-            text = { Text(text = text) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing))) {
+                    Text(text = description)
+                    Text(
+                        text = stringResource(R.string.irreversible_action),
+                        fontStyle = FontStyle.Italic,
+                    )
+                }
+            },
         )
     }
 }

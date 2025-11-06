@@ -64,17 +64,14 @@
     <string name="patch_action_edit">Τροποποίηση</string>
     <string name="patch_action_remove">Αφαίρεση</string>
     <string name="tools_recent_clear_title">Εκκαθάριση λίστας προσφάτως προβεβλημμένων τραγουδιών</string>
-    <string name="tools_recent_clear_description">Προσοχή! Η ενέργεια είναι μη αναστρέψιμη.</string>
-    <string name="tools_tonality_reset_title">Επαναφορά επιλεγμένης τονικότητας συγχορδιών</string>
-    <string name="tools_tonality_reset_description">
-        Προβολή στίχων και απόκρυψη συγχορδιών σε όλα τα τραγούδια.
-        \nΠροσοχή! Η ενέργεια είναι μη αναστρέψιμη.
-    </string>
+    <string name="tools_recent_clear_description">Όλα τα τραγούδια θα αφαιρεθούν από τη λίστα των προσφάτως προβεβλημένων τραγουδιών.</string>
+    <string name="tools_tonality_clear_title">Εκκαθάριση επιλεγμένης τονικότητας συγχορδιών</string>
+    <string name="tools_tonality_clear_description">Σε όλα τα τραγούδια θα εμφανίζονται οι στίχοι χωρίς τις συγχορδίες.</string>
     <string name="tools_font_size_reset_title">Επαναφορά μεγέθους γραμματοσειράς</string>
-    <string name="tools_font_size_reset_description">
-        Επαναφορά μεγέθους γραμματοσειράς στίχων και συγχορδιών όλων των τραγουδιών.
-        \nΠροσοχή! Η ενέργεια είναι μη αναστρέψιμη.
-    </string>
+    <string name="tools_font_size_reset_description">Σε όλα τα τραγούδια θα οριστεί το αρχικό μέγεθος γραμματοσειράς στίχων και συγχορδιών.</string>
+    <string name="tools_speed_reset_title">Επαναφορά ταχύτητας αυτόματης κύλισης συγχορδιών</string>
+    <string name="tools_speed_reset_description">Σε όλα τα τραγούδια θα επιλεγεί η προτεινόμενη ταχύτητα αυτόματης κύλισης των συγχορδιών.</string>
+    <string name="irreversible_action">Προσοχή!\nΗ ενέργεια είναι μη αναστρέψιμη.</string>
     <string name="clear">Εκκαθάριση</string>
     <string name="reset">Επαναφορά</string>
     <string name="cancel">Άκυρο</string>
