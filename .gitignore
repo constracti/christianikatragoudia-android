@@ -1,3 +1,5 @@
+# https://github.com/github/gitignore/blob/main/Android.gitignore
+
 # Gradle files
 .gradle/
 build/
@@ -7,9 +9,6 @@ local.properties
 
 # IntelliJ
 .idea/
-
-# Keystore files
-*.jks
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
