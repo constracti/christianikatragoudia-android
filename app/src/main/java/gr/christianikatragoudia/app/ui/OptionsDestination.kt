@@ -1,5 +1,6 @@
 package gr.christianikatragoudia.app.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -99,68 +100,68 @@ object OptionsDestination : NavDestination {
                     .fillMaxSize(),
             ) {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    ListHeader(text = stringResource(R.string.settings))
+                    ListHeader(text = R.string.settings)
                     NavigationListItem(
-                        headline = stringResource(R.string.tonalities),
+                        headline = R.string.tonalities,
                         support = stringResource(R.string.tonalities_support),
                         enabled = !processing,
                         onClick = navigateToTonalities,
                     )
                     NavigationListItem(
-                        headline = stringResource(R.string.theme),
+                        headline = R.string.theme,
                         enabled = !processing,
                         onClick = navigateToTheme,
                     )
-                    ListHeader(text = stringResource(R.string.tools))
+                    ListHeader(text = R.string.tools)
                     NavigationListItem(
-                        headline = stringResource(R.string.update),
+                        headline = R.string.update,
                         support = stringResource(R.string.update_support),
                         enabled = !processing,
                         onClick = navigateToUpdate,
                         badge = viewModel.updateCheck.collectAsState(initial = false).value,
                     )
                     AlertListItem(
-                        headline = stringResource(R.string.tools_recent_clear_title),
-                        description = stringResource(R.string.tools_recent_clear_description),
+                        headline = R.string.tools_recent_clear_title,
+                        description = R.string.tools_recent_clear_description,
                         enabled = !processing,
-                        confirmButtonText = stringResource(R.string.clear),
+                        confirmButtonText = R.string.clear,
                         onConfirmButtonClick = { viewModel.clearRecent() },
                     )
                     AlertListItem(
-                        headline = stringResource(R.string.tools_tonality_clear_title),
-                        description = stringResource(R.string.tools_tonality_clear_description),
+                        headline = R.string.tools_tonality_clear_title,
+                        description = R.string.tools_tonality_clear_description,
                         enabled = !processing,
-                        confirmButtonText = stringResource(R.string.clear),
+                        confirmButtonText = R.string.clear,
                         onConfirmButtonClick = { viewModel.clearTonality() },
                     )
                     AlertListItem(
-                        headline = stringResource(R.string.tools_font_size_reset_title),
-                        description = stringResource(R.string.tools_font_size_reset_description),
+                        headline = R.string.tools_font_size_reset_title,
+                        description = R.string.tools_font_size_reset_description,
                         enabled = !processing,
-                        confirmButtonText = stringResource(R.string.reset),
+                        confirmButtonText = R.string.reset,
                         onConfirmButtonClick = { viewModel.resetScale() },
                     )
                     AlertListItem(
-                        headline = stringResource(R.string.tools_speed_reset_title),
-                        description = stringResource(R.string.tools_speed_reset_description),
+                        headline = R.string.tools_speed_reset_title,
+                        description = R.string.tools_speed_reset_description,
                         enabled = !processing,
-                        confirmButtonText = stringResource(R.string.reset),
+                        confirmButtonText = R.string.reset,
                         onConfirmButtonClick = { viewModel.resetSpeed() },
                     )
-                    ListHeader(text = stringResource(R.string.application))
+                    ListHeader(text = R.string.application)
                     NavigationListItem(
-                        headline = stringResource(R.string.information),
+                        headline = R.string.information,
                         enabled = !processing,
                         onClick = navigateToInformation,
                     )
                     NavigationListItem(
-                        headline = stringResource(R.string.license),
+                        headline = R.string.license,
                         support = stringResource(R.string.license_short),
                         enabled = !processing,
                         onClick = navigateToLicense,
                     )
                     NavigationListItem(
-                        headline = stringResource(R.string.version),
+                        headline = R.string.version,
                         support = Version.CURRENT,
                         enabled = !processing,
                         onClick = navigateToVersions,
@@ -175,7 +176,7 @@ object OptionsDestination : NavDestination {
 }
 
 @Composable
-private fun ListHeader(text: String) {
+private fun ListHeader(@StringRes text: Int) {
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -183,7 +184,7 @@ private fun ListHeader(text: String) {
         contentAlignment = Alignment.CenterStart,
     ) {
         Text(
-            text = text,
+            text = stringResource(text),
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.labelLarge,
         )
@@ -192,14 +193,14 @@ private fun ListHeader(text: String) {
 
 @Composable
 private fun NavigationListItem(
-    headline: String,
+    @StringRes headline: Int,
     support: String? = null,
     enabled: Boolean,
     onClick: () -> Unit,
     badge: Boolean = false,
 ) {
     ListItem(
-        headlineContent = { Text(text = headline) },
+        headlineContent = { Text(text = stringResource(headline)) },
         modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
         supportingContent = { if (support != null) Text(text = support) },
         trailingContent = {
@@ -218,19 +219,19 @@ private fun NavigationListItem(
 }
 
 @Composable
-private fun AlertListItem( // TODO use string resources
-    headline: String,
-    support: String? = null,
-    description: String,
+private fun AlertListItem(
+    @StringRes headline: Int,
+    @StringRes support: Int? = null,
+    @StringRes description: Int,
     enabled: Boolean,
-    confirmButtonText: String,
+    @StringRes confirmButtonText: Int,
     onConfirmButtonClick: () -> Unit,
 ) {
     var visible by remember { mutableStateOf(false) }
     ListItem(
-        headlineContent = { Text(text = headline) },
+        headlineContent = { Text(text = stringResource(headline)) },
         modifier = Modifier.clickable(enabled) { visible = true },
-        supportingContent = { if (support != null) Text(text = support) },
+        supportingContent = { if (support != null) Text(text = stringResource(support)) },
         trailingContent = {
             Icon(
                 imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
@@ -249,7 +250,7 @@ private fun AlertListItem( // TODO use string resources
                         onConfirmButtonClick()
                     },
                 ) {
-                    Text(text = confirmButtonText)
+                    Text(text = stringResource(confirmButtonText))
                 }
             },
             dismissButton = {
@@ -260,7 +261,7 @@ private fun AlertListItem( // TODO use string resources
             icon = { Icon(imageVector = Icons.Default.Warning, contentDescription = null) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing))) {
-                    Text(text = description)
+                    Text(text = stringResource(description))
                     Text(
                         text = stringResource(R.string.irreversible_action),
                         fontStyle = FontStyle.Italic,
