@@ -1,14 +1,14 @@
 [versions]
 application = "8.13.0"
-kotlin = "2.2.0"
+kotlin = "2.2.21"
 compose-bom = "2025.11.00"
 datastore = "1.1.7"
 navigation = "2.7.7" # 2.8.0 introduces type safety for destinations
-room = "2.7.2"
-work-runtime-ktx = "2.10.3"
-firebase-bom = "34.0.0"
+room = "2.8.3"
+work-runtime-ktx = "2.11.0"
+firebase-bom = "34.5.0"
 google-devtools-ksp = "2.2.0-2.0.2"
-google-services = "4.4.3"
+google-services = "4.4.4"
 squareup-moshi = "1.15.2"
 squareup-retrofit2 = "3.0.0"
 
