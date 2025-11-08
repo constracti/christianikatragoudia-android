@@ -3,10 +3,6 @@ package gr.christianikatragoudia.app.ui
 import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -23,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,47 +34,26 @@ import gr.christianikatragoudia.app.network.TheAnalytics
 class SongControl(
     @param:StringRes
     private val text: Int,
-    private val graphic: Graphic,
+    @param:DrawableRes
+    private val icon: Int,
     private val enabled: Boolean = true,
     private val onClick: () -> Unit
 ) {
-
-    interface Graphic {
-
-        @Composable
-        fun Content(@StringRes text: Int)
-
-        class PainterGraphic(@param:DrawableRes val icon: Int) : Graphic {
-
-            @Composable
-            override fun Content(@StringRes text: Int) {
-                Icon(painter = painterResource(icon), contentDescription = stringResource(text))
-            }
-        }
-
-        class VectorGraphic(val icon: ImageVector) : Graphic {
-
-            @Composable
-            override fun Content(@StringRes text: Int) {
-                Icon(imageVector = icon, contentDescription = stringResource(text))
-            }
-        }
-    }
 
     companion object {
 
         fun navigateBack(onClick: () -> Unit) = SongControl(
             text = R.string.back_button,
-            graphic = Graphic.VectorGraphic(Icons.AutoMirrored.Default.ArrowBack),
+            icon = R.drawable.arrow_back,
             onClick = onClick,
         )
 
         fun star(currentStarred: Boolean, changeStarred: (Boolean) -> Unit) = SongControl(
             text = if (currentStarred) R.string.starred_remove else R.string.starred_add,
-            graphic = if (currentStarred)
-                Graphic.PainterGraphic(R.drawable.baseline_star_24)
+            icon = if (currentStarred)
+                R.drawable.star_fill
             else
-                Graphic.PainterGraphic(R.drawable.baseline_star_outline_24),
+                R.drawable.star,
         ) { changeStarred(currentStarred.not()) }
 
         @Composable
@@ -98,7 +73,7 @@ class SongControl(
             }
             return SongControl(
                 text = R.string.information,
-                graphic = Graphic.VectorGraphic(Icons.Default.Info),
+                icon = R.drawable.info,
             ) { visible = true }
         }
 
@@ -107,7 +82,7 @@ class SongControl(
             val context = LocalContext.current
             return SongControl(
                 text = R.string.link_open,
-                graphic = Graphic.PainterGraphic(R.drawable.baseline_open_in_browser_24),
+                icon = R.drawable.open_in_browser,
             ) {
                 val intent = Intent(Intent.ACTION_VIEW, song.permalink.toUri())
                 context.startActivity(intent)
@@ -119,7 +94,7 @@ class SongControl(
             val context = LocalContext.current
             return SongControl(
                 text = R.string.link_send,
-                graphic = Graphic.VectorGraphic(Icons.Default.Share),
+                icon = R.drawable.share,
             ) {
                 // TODO enrich, see https://developer.android.com/training/sharing/send
                 val intent = Intent(Intent.ACTION_SEND).apply {
@@ -137,7 +112,7 @@ class SongControl(
             changeTonality: (MusicNote?) -> Unit,
         ) = SongControl(
             text = R.string.tonality_hide,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_notes_24),
+            icon = R.drawable.playlist_remove,
             enabled = currentTonality != null,
         ) { changeTonality(null) }
 
@@ -147,7 +122,7 @@ class SongControl(
             changeTonality: (MusicNote?) -> Unit,
         ) = SongControl(
             text = R.string.tonality_reset,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_queue_music_24),
+            icon = R.drawable.queue_music,
             enabled = currentTonality != defaultTonality,
         ) { changeTonality(defaultTonality) }
 
@@ -158,7 +133,7 @@ class SongControl(
             change: (Float) -> Unit,
         ) = SongControl(
             text = R.string.scale_decrease,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_zoom_out_24),
+            icon = R.drawable.zoom_out,
             enabled = current > minimum,
         ) { change(current.div(factor).coerceAtLeast(minimum)) }
 
@@ -169,7 +144,7 @@ class SongControl(
             change: (Float) -> Unit,
         ) = SongControl(
             text = R.string.scale_increase,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_zoom_in_24),
+            icon = R.drawable.zoom_in,
             enabled = current < maximum,
         ) { change(current.times(factor).coerceAtMost(maximum)) }
 
@@ -179,7 +154,7 @@ class SongControl(
             change: (Float) -> Unit,
         ) = SongControl(
             text = R.string.scale_reset,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_search_off_24),
+            icon = R.drawable.search_off,
             enabled = current != default,
         ) { change(default) }
 
@@ -190,52 +165,52 @@ class SongControl(
         ): SongControl {
             return SongControl(
                 text = R.string.scale_optimize,
-                graphic = Graphic.PainterGraphic(R.drawable.baseline_saved_search_24),
+                icon = R.drawable.saved_search,
                 enabled = current != optimal,
             ) { change(optimal) }
         }
 
         fun scroll(isRunning: Boolean, isFinished: Boolean, onClick: () -> Unit) = SongControl(
             text = if (isRunning) R.string.pause else R.string.scroll,
-            graphic = if (isRunning)
-                Graphic.PainterGraphic(R.drawable.baseline_pause_24)
+            icon = if (isRunning)
+                R.drawable.pause
             else
-                Graphic.PainterGraphic(R.drawable.baseline_play_arrow_24),
+                R.drawable.play_arrow,
             enabled = isFinished.not(),
             onClick = onClick,
         )
 
         fun greatlyDecreaseSpeed(enabled: Boolean, onClick: () -> Unit) = SongControl(
             text = R.string.speed_decrease_greatly,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_keyboard_double_arrow_down_24),
+            icon = R.drawable.keyboard_double_arrow_down,
             enabled = enabled,
             onClick = onClick,
         )
 
         fun decreaseSpeed(enabled: Boolean, onClick: () -> Unit) = SongControl(
             text = R.string.speed_decrease,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_keyboard_arrow_down_24),
+            icon = R.drawable.keyboard_arrow_down,
             enabled = enabled,
             onClick = onClick,
         )
 
         fun increaseSpeed(enabled: Boolean, onClick: () -> Unit) = SongControl(
             text = R.string.speed_increase,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_keyboard_arrow_up_24),
+            icon = R.drawable.keyboard_arrow_up,
             enabled = enabled,
             onClick = onClick,
         )
 
         fun greatlyIncreaseSpeed(enabled: Boolean, onClick: () -> Unit) = SongControl(
             text = R.string.speed_increase_greatly,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_keyboard_double_arrow_up_24),
+            icon = R.drawable.keyboard_double_arrow_up,
             enabled = enabled,
             onClick = onClick,
         )
 
         fun resetSpeed(enabled: Boolean, onClick: () -> Unit) = SongControl(
             text = R.string.speed_reset,
-            graphic = Graphic.PainterGraphic(R.drawable.baseline_1x_mobiledata_24),
+            icon = R.drawable.speed_1x,
             enabled = enabled,
             onClick = onClick,
         )
@@ -243,9 +218,9 @@ class SongControl(
 
     @OptIn(ExperimentalMaterial3Api::class) // TooltipBox
     @Composable
-    fun AsIconButton() {
+    fun AsIconButton(tooltipPositioning: TooltipAnchorPosition = TooltipAnchorPosition.Above) {
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(positioning = tooltipPositioning),
             tooltip = {
                 PlainTooltip {
                     Text(text = stringResource(text), textAlign = TextAlign.Center)
@@ -253,7 +228,9 @@ class SongControl(
             },
             state = rememberTooltipState(),
         ) {
-            IconButton(onClick = onClick, enabled = enabled) { graphic.Content(text = text) }
+            IconButton(onClick = onClick, enabled = enabled) {
+                Icon(painter = painterResource(icon), contentDescription = stringResource(text))
+            }
         }
     }
 
@@ -265,7 +242,9 @@ class SongControl(
                 onClick()
                 collapse()
             },
-            leadingIcon = { graphic.Content(text = text) },
+            leadingIcon = {
+                Icon(painter = painterResource(icon), contentDescription = stringResource(text))
+            },
             enabled = enabled,
         )
     }

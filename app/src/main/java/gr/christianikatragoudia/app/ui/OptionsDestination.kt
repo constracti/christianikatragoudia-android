@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -34,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,10 +91,10 @@ object OptionsDestination : NavDestination {
             },
             contentColor = MaterialTheme.colorScheme.onBackground,
             containerColor = Color.Transparent,
-        ) {
+        ) { paddingValues ->
             Box(
                 modifier = Modifier
-                    .padding(it)
+                    .padding(paddingValues = paddingValues)
                     .fillMaxSize(),
             ) {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -209,7 +207,7 @@ private fun NavigationListItem(
                     Badge()
             }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
+                    painter = painterResource(R.drawable.chevron_forward),
                     contentDescription = null,
                 )
             }
@@ -234,7 +232,7 @@ private fun AlertListItem(
         supportingContent = { if (support != null) Text(text = stringResource(support)) },
         trailingContent = {
             Icon(
-                imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
+                painter = painterResource(R.drawable.chevron_forward),
                 contentDescription = null,
             )
         },
@@ -258,7 +256,12 @@ private fun AlertListItem(
                     Text(text = stringResource(R.string.cancel))
                 }
             },
-            icon = { Icon(imageVector = Icons.Default.Warning, contentDescription = null) },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.warning),
+                    contentDescription = null,
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing))) {
                     Text(text = stringResource(description))

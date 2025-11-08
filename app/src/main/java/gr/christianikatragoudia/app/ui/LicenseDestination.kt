@@ -78,10 +78,10 @@ private fun TheScaffold(
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(it)
+                .padding(paddingValues = paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(8.dp),
         ) {

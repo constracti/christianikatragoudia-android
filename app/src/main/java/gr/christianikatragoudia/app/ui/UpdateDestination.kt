@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -106,7 +104,7 @@ object UpdateDestination : NavDestination {
                             enabled = !loading && !actions.isNullOrEmpty(),
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.baseline_download_24),
+                                painter = painterResource(R.drawable.download),
                                 contentDescription = null,
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
                             )
@@ -123,13 +121,13 @@ object UpdateDestination : NavDestination {
             },
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
-        ) {
+        ) { paddingValues ->
             if (loading) {
-                LoadingBox(modifier = Modifier.padding(it))
+                LoadingBox(modifier = Modifier.padding(paddingValues = paddingValues))
             } else if (!actions.isNullOrEmpty()) {
-                ListContent(actions = actions, modifier = Modifier.padding(it))
+                ListContent(actions = actions, modifier = Modifier.padding(paddingValues = paddingValues))
             } else if (actions != null) {
-                SuccessContent(modifier = Modifier.padding(it))
+                SuccessContent(modifier = Modifier.padding(paddingValues = paddingValues))
             }
         }
     }
@@ -174,7 +172,7 @@ private fun SuccessContent(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Icon(
-                imageVector = Icons.Default.CheckCircle,
+                painter = painterResource(R.drawable.check_circle),
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)

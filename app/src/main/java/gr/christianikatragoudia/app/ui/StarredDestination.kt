@@ -78,10 +78,10 @@ private fun TheScaffold(
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
-    ) {
+    ) { paddingValues ->
         ResultList(
             resultList = resultList,
-            modifier = Modifier.padding(it),
+            modifier = Modifier.padding(paddingValues = paddingValues),
             navigateToSong = navigateToSong,
         )
     }

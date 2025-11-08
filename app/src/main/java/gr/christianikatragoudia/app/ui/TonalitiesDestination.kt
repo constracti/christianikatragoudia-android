@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -27,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,15 +88,15 @@ private fun TheScaffold(
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
-    ) {
+    ) { paddingValues ->
         if (loading) {
-            LoadingBox(modifier = Modifier.padding(it))
+            LoadingBox(modifier = Modifier.padding(paddingValues = paddingValues))
         } else {
             TheBody(
                 hiddenTonalities = hiddenTonalities,
                 onTonalityToggle = onTonalityToggle,
                 onTonalityReset = onTonalityReset,
-                modifier = Modifier.padding(it),
+                modifier = Modifier.padding(paddingValues = paddingValues),
             )
         }
     }
@@ -131,7 +130,7 @@ private fun TheBody(
             ) {
                 Spacer(modifier = Modifier.width(cardMargin))
                 Icon(
-                    imageVector = Icons.Default.Info,
+                    painter = painterResource(R.drawable.info),
                     contentDescription = null,
                     modifier = Modifier.padding(vertical = cardMargin),
                 )

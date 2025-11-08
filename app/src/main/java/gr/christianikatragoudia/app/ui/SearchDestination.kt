@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -98,10 +96,12 @@ private fun TheScaffold(
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
-    ) {
-        Column(modifier = Modifier
-            .padding(it)
-            .fillMaxWidth()) {
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+            .padding(paddingValues = paddingValues)
+            .fillMaxWidth(),
+        ) {
             SearchForm(
                 query = query,
                 onQueryFieldValueChange = onQueryFieldValueChange,
@@ -138,7 +138,7 @@ private fun SearchForm(
         },
         leadingIcon = {
             Icon(
-                imageVector = Icons.Default.Search,
+                painter = painterResource(R.drawable.search),
                 contentDescription = stringResource(R.string.search),
             )
         },
@@ -146,7 +146,7 @@ private fun SearchForm(
             if (query != "") {
                 IconButton(onClick = { onQueryFieldValueChange("") }) {
                     Icon(
-                        imageVector = Icons.Default.Clear,
+                        painter = painterResource(R.drawable.close_small),
                         contentDescription = stringResource(R.string.clear),
                     )
                 }

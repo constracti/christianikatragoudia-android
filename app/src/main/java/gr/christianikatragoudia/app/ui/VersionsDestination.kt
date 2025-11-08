@@ -58,10 +58,10 @@ private fun TheScaffold(
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
-    ) {
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
-                .padding(it)
+                .padding(paddingValues = paddingValues)
                 .fillMaxWidth(),
             contentPadding = PaddingValues(4.dp),
         ) {

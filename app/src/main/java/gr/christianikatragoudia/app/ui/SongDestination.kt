@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
@@ -162,6 +161,7 @@ private fun StartScreen(navigateBack: () -> Unit) {
     LoadingScreen(navigateBack = navigateBack)
 }
 
+@OptIn(ExperimentalMaterial3Api::class) // TooltipAnchorPosition
 @Composable
 private fun LyricsScreen(
     song: Song,
@@ -289,7 +289,7 @@ private fun LyricsScreen(
                         val collapse = { expanded = false }
                         IconButton(onClick = { expanded = expanded.not() }) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
+                                painter = painterResource(R.drawable.more_vert),
                                 contentDescription = stringResource(R.string.more),
                             )
                         }
@@ -307,18 +307,19 @@ private fun LyricsScreen(
         } else {
             Row(
                 modifier = containerModifier,
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing))
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing)),
             ) {
                 Box(modifier = boxModifier.fillMaxHeight().weight(1f)) {
                     LyricsContent(content = song.content, scale = scale, modifier = textModifier)
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Row {
-                        navigateBackControl.AsIconButton()
-                        starControl.AsIconButton()
-                        showInfoControl.AsIconButton()
-                        openLinkControl.AsIconButton()
-                        sendLinkControl.AsIconButton()
+                        val tooltipPositioning = TooltipAnchorPosition.Below
+                        navigateBackControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        starControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        showInfoControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        openLinkControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        sendLinkControl.AsIconButton(tooltipPositioning = tooltipPositioning)
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     Row {
@@ -342,6 +343,7 @@ private fun LyricsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class) // TooltipAnchorPosition
 @Composable
 private fun ChordsScreen(
     song: Song,
@@ -574,7 +576,7 @@ private fun ChordsScreen(
                         val collapse = { expanded = false }
                         IconButton(onClick = { expanded = expanded.not() }) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
+                                painter = painterResource(R.drawable.more_vert),
                                 contentDescription = stringResource(R.string.more),
                             )
                         }
@@ -607,11 +609,12 @@ private fun ChordsScreen(
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Row {
-                        navigateBackControl.AsIconButton()
-                        starControl.AsIconButton()
-                        showInfoControl.AsIconButton()
-                        openLinkControl.AsIconButton()
-                        sendLinkControl.AsIconButton()
+                        val tooltipPositioning = TooltipAnchorPosition.Below
+                        navigateBackControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        starControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        showInfoControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        openLinkControl.AsIconButton(tooltipPositioning = tooltipPositioning)
+                        sendLinkControl.AsIconButton(tooltipPositioning = tooltipPositioning)
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     resetSpeedControl.AsIconButton()
@@ -639,7 +642,7 @@ private fun ChordsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class) // TopAppBar
+@OptIn(ExperimentalMaterial3Api::class) // TopAppBar, TooltipAnchorPosition
 @Composable
 private fun TopBar(
     song: Song,
@@ -648,8 +651,12 @@ private fun TopBar(
 ) {
     TopAppBar(
         title = { Text(text = song.title) },
-        navigationIcon = { navigateBackControl.AsIconButton() },
-        actions = { starControl.AsIconButton() },
+        navigationIcon = {
+            navigateBackControl.AsIconButton(tooltipPositioning = TooltipAnchorPosition.Below)
+        },
+        actions = {
+            starControl.AsIconButton(tooltipPositioning = TooltipAnchorPosition.Below)
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
@@ -743,7 +750,7 @@ private fun AdjustSpeedToggleButton(
 ) {
     val text = R.string.speed_adjust
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(positioning = TooltipAnchorPosition.Above),
         tooltip = {
             PlainTooltip {
                 Text(text = stringResource(text), textAlign = TextAlign.Center)
@@ -756,13 +763,14 @@ private fun AdjustSpeedToggleButton(
             onCheckedChange = changeSpeeding,
         ) {
             Icon(
-                painter = painterResource(R.drawable.baseline_speed_24),
+                painter = painterResource(R.drawable.speed),
                 contentDescription = stringResource(text),
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class) // TooltipAnchorPosition
 @Composable
 private fun SpeedRow(currentSpeed: Float, changeSpeed: (Float) -> Unit) {
     val speedList = SongViewModel.speedList

@@ -12,7 +12,7 @@ enum class Version(val tag: String, @param:ArrayRes val changes: Int, val date: 
     V_1_3(tag = "1.3", changes = R.array.version_1_3, date = LocalDate.of(2023, 12, 22)),
     V_1_4(tag = "1.4", changes = R.array.version_1_4, date = LocalDate.of(2025, 4, 21)),
     V_1_5(tag = "1.5", changes = R.array.version_1_5, date = LocalDate.of(2025, 7, 1)),
-    V_1_6(tag = "1.6", changes = R.array.version_1_6, date = LocalDate.of(2025, 11, 6));
+    V_1_6(tag = "1.6", changes = R.array.version_1_6, date = LocalDate.of(2025, 11, 8));
 
     companion object {
 

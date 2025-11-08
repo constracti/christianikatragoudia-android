@@ -10,11 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
@@ -57,7 +52,7 @@ fun TheTopAppBar(
             if (navigateBack != null) {
                 IconButton(onClick = navigateBack) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                        painter = painterResource(R.drawable.arrow_back),
                         contentDescription = stringResource(R.string.back_button),
                     )
                 }
@@ -90,8 +85,8 @@ fun LoadingScreen(
         },
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onBackground,
-    ) {
-        LoadingBox(modifier = Modifier.padding(it))
+    ) { paddingValues ->
+        LoadingBox(modifier = Modifier.padding(paddingValues = paddingValues))
     }
 }
 
@@ -118,7 +113,10 @@ fun TheNavigationBar(
             selected = selected == TheNavigationBarScreen.SEARCH,
             onClick = navigateToSearch,
             icon = {
-                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                Icon(
+                    painter = painterResource(R.drawable.search),
+                    contentDescription = stringResource(R.string.search),
+                )
             },
             label = {
                 Text(text = stringResource(R.string.search))
@@ -128,7 +126,10 @@ fun TheNavigationBar(
             selected = selected == TheNavigationBarScreen.STARRED,
             onClick = navigateToStarred,
             icon = {
-                Icon(imageVector = Icons.Default.Star, contentDescription = null)
+                Icon(
+                    painter = painterResource(R.drawable.star_fill),
+                    contentDescription = stringResource(R.string.starred),
+                )
             },
             label = {
                 Text(text = stringResource(R.string.starred))
@@ -138,7 +139,7 @@ fun TheNavigationBar(
             selected = selected == TheNavigationBarScreen.RECENT,
             onClick = navigateToRecent,
             icon = {
-                Icon(painter = painterResource(R.drawable.baseline_history_24), contentDescription = null)
+                Icon(painter = painterResource(R.drawable.history), contentDescription = null)
             },
             label = {
                 Text(text = stringResource(R.string.recent))
@@ -152,7 +153,10 @@ fun TheNavigationBar(
                     if (reddenOptions)
                         Badge()
                 }) {
-                    Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+                    Icon(
+                        painter = painterResource(R.drawable.settings),
+                        contentDescription = stringResource(R.string.settings),
+                    )
                 }
             },
             label = {

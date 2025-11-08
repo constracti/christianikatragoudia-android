@@ -1,7 +1,7 @@
 [versions]
-application = "8.12.0"
+application = "8.13.0"
 kotlin = "2.2.0"
-compose-bom = "2025.07.00"
+compose-bom = "2025.11.00"
 datastore = "1.1.7"
 navigation = "2.7.7" # 2.8.0 introduces type safety for destinations
 room = "2.7.2"

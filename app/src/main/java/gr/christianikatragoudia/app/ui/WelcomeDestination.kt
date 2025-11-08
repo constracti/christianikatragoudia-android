@@ -125,9 +125,12 @@ private fun TheScaffold(
         },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,
-    ) {
+    ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(it).fillMaxSize().verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .padding(paddingValues = paddingValues)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -145,7 +148,7 @@ private fun TheScaffold(
             Spacer(modifier = Modifier.size(24.dp))
             Button(onClick = onDownloadButtonClick) {
                 Icon(
-                    painter = painterResource(R.drawable.baseline_download_24),
+                    painter = painterResource(R.drawable.download),
                     contentDescription = null,
                     modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
