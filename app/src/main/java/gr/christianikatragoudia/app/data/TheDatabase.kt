@@ -15,6 +15,8 @@ import gr.christianikatragoudia.app.music.MusicNoteTypeConverter
 private val MIGRATION_1_2 = object : Migration(1, 2) {
 
     override fun migrate(db: SupportSQLiteDatabase) {
+        // begin transaction
+        db.beginTransaction()
         // chord parent index
         db.execSQL("CREATE INDEX `index_chord_parent` ON `chord` (`parent`)")
         // song meta zoom
@@ -52,6 +54,8 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
         """.trimIndent())
         db.execSQL("DROP TABLE `chord_meta`")
         db.execSQL("ALTER TABLE `chord_temp` RENAME TO `chord_meta`")
+        // commit transaction
+        db.endTransaction()
     }
 }
 
@@ -59,6 +63,8 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
 private val MIGRATION_3_4 = object : Migration(3, 4) {
 
     override fun migrate(db: SupportSQLiteDatabase) {
+        // begin transaction
+        db.beginTransaction()
         // song meta scale
         if (Build.VERSION.SDK_INT >= 30) {
             db.execSQL("ALTER TABLE `song_meta` RENAME `zoom` TO `scale`")
@@ -129,11 +135,11 @@ private val MIGRATION_3_4 = object : Migration(3, 4) {
             statement.clearBindings()
         }
         db.execSQL("INSERT INTO `song_fts`(`song_fts`) VALUES ('optimize')")
+        // commit transaction
+        db.endTransaction()
     }
 }
 
-
-// TODO wrap consequent queries in transactions
 
 @Database(
     version = 4,

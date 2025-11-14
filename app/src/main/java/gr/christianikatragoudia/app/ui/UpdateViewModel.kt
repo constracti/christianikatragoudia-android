@@ -2,6 +2,7 @@ package gr.christianikatragoudia.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.Patch
@@ -154,29 +155,33 @@ class UpdateViewModel(private val application: TheApplication) : ViewModel() {
                     !patch.chordIdSet.contains(it)
                 }.values
 
-                for (song in insSongList) {
-                    TheDatabase.getInstance(application).songDao().insert(song)
-                    TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                TheDatabase.getInstance(application).withTransaction {
+                    // song and song_fts records
+                    for (song in insSongList) {
+                        TheDatabase.getInstance(application).songDao().insert(song)
+                        TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                    }
+                    for (song in updSongList) {
+                        TheDatabase.getInstance(application).songDao().update(song)
+                        TheDatabase.getInstance(application).songDao().update(SongFts(song))
+                    }
+                    for (song in delSongList) {
+                        TheDatabase.getInstance(application).songDao().delete(song)
+                        TheDatabase.getInstance(application).songDao().delete(SongFts(song))
+                    }
+                    TheDatabase.getInstance(application).songDao().optimize()
+                    // chord records
+                    for (chord in insChordList)
+                        TheDatabase.getInstance(application).chordDao().insert(chord)
+                    for (chord in updChordList)
+                        TheDatabase.getInstance(application).chordDao().update(chord)
+                    for (chord in delChordList)
+                        TheDatabase.getInstance(application).chordDao().delete(chord)
+                    // settings
+                    SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
+                    SettingsRepo(application).setUpdateCheck(false)
                 }
-                for (song in updSongList) {
-                    TheDatabase.getInstance(application).songDao().update(song)
-                    TheDatabase.getInstance(application).songDao().update(SongFts(song))
-                }
-                for (song in delSongList) {
-                    TheDatabase.getInstance(application).songDao().delete(song)
-                    TheDatabase.getInstance(application).songDao().delete(SongFts(song))
-                }
-                TheDatabase.getInstance(application).songDao().optimize()
 
-                for (chord in insChordList)
-                    TheDatabase.getInstance(application).chordDao().insert(chord)
-                for (chord in updChordList)
-                    TheDatabase.getInstance(application).chordDao().update(chord)
-                for (chord in delChordList)
-                    TheDatabase.getInstance(application).chordDao().delete(chord)
-
-                SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
-                SettingsRepo(application).setUpdateCheck(false)
                 _uiState.update {
                     it.copy(loading = false, actions = mutableMapOf())
                 }

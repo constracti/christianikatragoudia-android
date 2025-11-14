@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import gr.christianikatragoudia.app.data.SettingsRepo
 
+
 class NotificationWorker(private val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -17,7 +18,7 @@ class NotificationWorker(private val context: Context, params: WorkerParameters)
                 SettingsRepo(context).setUpdateCheck(true)
             }
             Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Result.failure()
         }
     }

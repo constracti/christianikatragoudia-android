@@ -2,6 +2,7 @@ package gr.christianikatragoudia.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
 import gr.christianikatragoudia.app.R
 import gr.christianikatragoudia.app.TheApplication
 import gr.christianikatragoudia.app.data.SettingsRepo
@@ -39,12 +40,15 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
         viewModelScope.launch {
             val countData = TheDatabase.getInstance(application).songDao().countData()
             val countFts = TheDatabase.getInstance(application).songDao().countFts()
+            // complete auto migration from 2 to 3
             if (countData > 0 && countFts == 0) {
                 val songList = TheDatabase.getInstance(application).songDao().getDataList()
-                for (song in songList) {
-                    TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                TheDatabase.getInstance(application).withTransaction {
+                    for (song in songList) {
+                        TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                    }
+                    TheDatabase.getInstance(application).songDao().optimize()
                 }
-                TheDatabase.getInstance(application).songDao().optimize()
             }
             _uiState.update {
                 it.copy(
@@ -68,16 +72,21 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
         viewModelScope.launch {
             try {
                 val patch = WebApp.retrofitService.getPatch(null, true)
-                for (song in patch.songList) {
-                    TheDatabase.getInstance(application).songDao().insert(song)
-                    TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                TheDatabase.getInstance(application).withTransaction {
+                    // song and song_fts records
+                    for (song in patch.songList) {
+                        TheDatabase.getInstance(application).songDao().insert(song)
+                        TheDatabase.getInstance(application).songDao().insert(SongFts(song))
+                    }
+                    TheDatabase.getInstance(application).songDao().optimize()
+                    // chord records
+                    for (chord in patch.chordList) {
+                        TheDatabase.getInstance(application).chordDao().insert(chord)
+                    }
+                    // settings
+                    SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
+                    SettingsRepo(application).setUpdateCheck(false)
                 }
-                TheDatabase.getInstance(application).songDao().optimize()
-                for (chord in patch.chordList) {
-                    TheDatabase.getInstance(application).chordDao().insert(chord)
-                }
-                SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
-                SettingsRepo(application).setUpdateCheck(false)
                 val count = TheDatabase.getInstance(application).songDao().countData()
                 _uiState.update {
                     it.copy(
@@ -85,7 +94,7 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
                         passed = count > 0,
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 setSnackbarMessage(application.getString(R.string.download_error_message))
                 _uiState.update {
                     it.copy(loading = false)
