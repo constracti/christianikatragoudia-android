@@ -1,5 +1,5 @@
 [versions]
-application = "8.13.0"
+application = "8.13.1"
 kotlin = "2.2.21"
 compose-bom = "2025.11.00"
 datastore = "1.1.7"

@@ -16,6 +16,6 @@ enum class Version(val tag: String, @param:ArrayRes val changes: Int, val date: 
 
     companion object {
 
-        const val CURRENT = "1.6.0"
+        const val CURRENT = "1.6.1"
     }
 }

@@ -1,6 +1,7 @@
 package gr.christianikatragoudia.app.data
 
 import android.content.Context
+import android.os.Build
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
@@ -59,9 +60,48 @@ private val MIGRATION_3_4 = object : Migration(3, 4) {
 
     override fun migrate(db: SupportSQLiteDatabase) {
         // song meta scale
-        db.execSQL("ALTER TABLE `song_meta` RENAME `zoom` TO `scale`")
+        if (Build.VERSION.SDK_INT >= 30) {
+            db.execSQL("ALTER TABLE `song_meta` RENAME `zoom` TO `scale`")
+        } else {
+            db.execSQL("""
+                CREATE TABLE `song_temp` (
+                    `id` INTEGER NOT NULL,
+                    `scale` REAL NOT NULL,
+                    `starred` INTEGER NOT NULL,
+                    `visited` TEXT,
+                    PRIMARY KEY(`id`),
+                    FOREIGN KEY(`id`) REFERENCES `song`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
+                )
+            """.trimIndent())
+            db.execSQL("""
+                INSERT INTO `song_temp` (`id`, `scale`, `starred`, `visited`)
+                SELECT `id`, `zoom`, `starred`, `visited`
+                FROM `song_meta`
+            """.trimIndent())
+            db.execSQL("DROP TABLE `song_meta`")
+            db.execSQL("ALTER TABLE `song_temp` RENAME TO `song_meta`")
+        }
         // chord meta scale
-        db.execSQL("ALTER TABLE `chord_meta` RENAME `zoom` TO `scale`")
+        if (Build.VERSION.SDK_INT >= 30) {
+            db.execSQL("ALTER TABLE `chord_meta` RENAME `zoom` TO `scale`")
+        } else {
+            db.execSQL("""
+                CREATE TABLE `chord_temp` (
+                    `id` INTEGER NOT NULL,
+                    `tonality` TEXT,
+                    `scale` REAL NOT NULL,
+                    PRIMARY KEY(`id`),
+                    FOREIGN KEY(`id`) REFERENCES `chord`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
+                )
+            """.trimIndent())
+            db.execSQL("""
+                INSERT INTO `chord_temp` (`id`, `tonality`, `scale`)
+                SELECT `id`, `tonality`, `zoom`
+                FROM `chord_meta`
+            """.trimIndent())
+            db.execSQL("DROP TABLE `chord_meta`")
+            db.execSQL("ALTER TABLE `chord_temp` RENAME TO `chord_meta`")
+        }
         // chord speed
         db.execSQL("ALTER TABLE `chord` ADD `speed` REAL")
         // chord meta speed
