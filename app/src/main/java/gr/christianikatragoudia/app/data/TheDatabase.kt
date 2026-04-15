@@ -54,6 +54,8 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
         """.trimIndent())
         db.execSQL("DROP TABLE `chord_meta`")
         db.execSQL("ALTER TABLE `chord_temp` RENAME TO `chord_meta`")
+        // mark transaction
+        db.setTransactionSuccessful()
         // commit transaction
         db.endTransaction()
     }
@@ -135,6 +137,8 @@ private val MIGRATION_3_4 = object : Migration(3, 4) {
             statement.clearBindings()
         }
         db.execSQL("INSERT INTO `song_fts`(`song_fts`) VALUES ('optimize')")
+        // mark transaction
+        db.setTransactionSuccessful()
         // commit transaction
         db.endTransaction()
     }

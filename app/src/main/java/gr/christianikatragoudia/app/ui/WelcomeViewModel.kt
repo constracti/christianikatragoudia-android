@@ -38,25 +38,14 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val countData = TheDatabase.getInstance(application).songDao().countData()
-            val countFts = TheDatabase.getInstance(application).songDao().countFts()
-            // complete auto migration from 2 to 3
-            if (countData > 0 && countFts == 0) {
-                val songList = TheDatabase.getInstance(application).songDao().getDataList()
-                TheDatabase.getInstance(application).withTransaction {
-                    for (song in songList) {
-                        TheDatabase.getInstance(application).songDao().insert(SongFts(song))
-                    }
-                    TheDatabase.getInstance(application).songDao().optimize()
-                }
-            }
+            val count = TheDatabase.getInstance(application).songDao().count()
             _uiState.update {
                 it.copy(
                     loading = false,
-                    passed = countData > 0,
+                    passed = count > 0,
                 )
             }
-            if (countData == 0) {
+            if (count == 0) {
                 TheAnalytics.logScreenView(
                     screenClass = "/welcome/",
                     screenName = application.getString(R.string.welcome),
@@ -87,7 +76,7 @@ class WelcomeViewModel(private val application: TheApplication) : ViewModel() {
                     SettingsRepo(application).setUpdateTimestamp(patch.timestamp)
                     SettingsRepo(application).setUpdateCheck(false)
                 }
-                val count = TheDatabase.getInstance(application).songDao().countData()
+                val count = TheDatabase.getInstance(application).songDao().count()
                 _uiState.update {
                     it.copy(
                         loading = false,

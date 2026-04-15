@@ -1,3 +1,3 @@
 # Christianika Tragoudia
 
-This is a backup repository for the Android app project of [Christianika Tragoudia](https://christianikatragoudia.gr/).
+This is the development repository for the [Android App](https://play.google.com/store/apps/details?id=gr.christianikatragoudia.app) of [Christianika Tragoudia](https://christianikatragoudia.gr/).

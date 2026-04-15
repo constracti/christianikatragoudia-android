@@ -46,10 +46,7 @@ interface SongDao {
     suspend fun getMetaById(id: Int): SongMeta?
 
     @Query("SELECT COUNT(*) FROM song")
-    suspend fun countData(): Int
-
-    @Query("SELECT COUNT(*) FROM song_fts")
-    suspend fun countFts(): Int
+    suspend fun count(): Int
 
     @Query("UPDATE song_meta SET visited = NULL")
     suspend fun clearRecent()
